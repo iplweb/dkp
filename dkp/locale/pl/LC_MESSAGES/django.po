@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: DKP Hospital Communication System\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-04 17:53+0200\n"
+"POT-Creation-Date: 2025-10-04 22:45+0200\n"
 "PO-Revision-Date: 2025-10-04 18:00+0200\n"
 "Last-Translator: DKP Team\n"
 "Language-Team: Polish <LL@li.org>\n"
@@ -18,205 +18,762 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-#: comms/models.py
-msgid "Can Accept Patients"
-msgstr "Możemy przyjąć pacjenta"
 
-#: comms/models.py
-msgid "Surgery Done"
-msgstr "Zapraszamy po pacjenta"
-
-#: comms/models.py
-msgid "Patient in the OR"
-msgstr "Pacjent na sali operacyjnej"
-
-#: comms/models.py templates/comms/communication_anesthetist.html
-#: templates/comms/select_location.html
-#: templates/comms/select_location_anesthetist.html
-msgid "Operating Room"
-msgstr "Sala operacyjna"
-
-#: comms/models.py templates/comms/communication_anesthetist.html
-#: templates/comms/select_location.html
-#: templates/comms/select_ward_for_anesthetist.html
-msgid "Ward"
-msgstr "Odział"
-
-#: templates/base.html
-msgid "DKP - Hospital Communication System"
-msgstr "DKP - System Komunikacji Szpitalnej"
-
-#: templates/comms/communication.html
-#: templates/comms/communication_anesthetist.html
-msgid "Connecting..."
-msgstr "Łączenie..."
-
-#: templates/comms/communication.html
-msgid "Messages"
-msgstr "Wiadomości"
-
-#: templates/comms/communication.html
-msgid "Acknowledge"
-msgstr "Potwierdź"
-
-#: templates/comms/communication.html
-msgid "No new messages"
-msgstr "Brak nowych wiadomości"
-
-#: templates/comms/communication.html
-msgid "Send Messages"
-msgstr "Wyślij wiadomości"
-
-#: templates/comms/communication.html
-#: templates/comms/communication_anesthetist.html
-msgid "CAN_ACCEPT_PATIENTS"
-msgstr "MOŻEMY_PRZYJĄĆ_PACJENTA"
-
-#: templates/comms/communication.html
-msgid "to Nurses"
-msgstr "do Pielęgniarek"
-
-#: templates/comms/communication.html
-#: templates/comms/communication_anesthetist.html
-msgid "SURGERY_DONE"
-msgstr "ZAPRASZAMY_PO_PACJENTA"
-
-#: templates/comms/communication.html
-#: templates/comms/communication_anesthetist.html
-msgid "PATIENT_IN_THE_OR"
-msgstr "PACJENT_NA_SALI_OPERACYJNEJ"
-
-#: templates/comms/communication.html
-msgid "to Surgeon"
-msgstr "do Chirurgów"
-
-#: templates/comms/communication.html
-msgid "Change Location"
-msgstr "Zmień lokalizację"
-
-#: templates/comms/communication.html
-#: templates/comms/communication_anesthetist.html
-#: templates/comms/select_ward_for_anesthetist.html
-msgid "Change Role"
-msgstr "Zmień rolę"
-
-#: templates/comms/communication_anesthetist.html
-msgid "From"
-msgstr "Z"
-
-#: templates/comms/communication_anesthetist.html
-msgid "To"
-msgstr "Do"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Connected in"
-msgstr "Połączeni w"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Nurses"
-msgstr "Pielęgniarki"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Surgeons"
-msgstr "Chirurdzy"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Total"
-msgstr "Razem"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Send Messages to"
-msgstr "Wyślij wiadomości do"
-
-#: templates/comms/communication_anesthetist.html
-msgid "to Nurses in"
-msgstr "do Pielęgniarek w"
-
-#: templates/comms/communication_anesthetist.html
-msgid "to Surgeons in"
-msgstr "do Chirurgów w"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Recent Messages Sent"
-msgstr "Ostatnio wysłane wiadomości"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Acknowledged at"
-msgstr "Potwierdzono o"
-
-#: templates/comms/communication_anesthetist.html
-msgid "No messages sent yet"
-msgstr "Brak wysłanych wiadomości"
-
-#: templates/comms/communication_anesthetist.html
-msgid "Change Ward"
-msgstr "Zmień oddział"
-
-#: templates/comms/communication_anesthetist.html
-#: templates/comms/select_ward_for_anesthetist.html
-msgid "Change Operating Room"
-msgstr "Zmień salę operacyjną"
-
-#: templates/comms/role_selection.html
-msgid "Choose Role"
-msgstr "Wybierz rolę"
-
-#: templates/comms/role_selection.html
-msgid "Direct Communication Portal"
-msgstr "Portal Bezpośredniej Komunikacji"
-
-#: templates/comms/role_selection.html
-msgid "Select Your Role"
-msgstr "Wybierz swoją rolę"
-
-#: templates/comms/role_selection.html
-msgid "Send messages from Operating Room"
-msgstr "Wysyłaj wiadomości z sali operacyjnej"
-
-#: templates/comms/role_selection.html
-msgid "Receive messages in Ward"
-msgstr "Odbieraj wiadomości na oddziale"
-
-#: templates/comms/select_location.html
-msgid "Select Location"
-msgstr "Wybierz lokalizację"
-
-#: templates/comms/select_location.html
-#: templates/comms/select_location_anesthetist.html
-msgid "Role"
-msgstr "Rola"
-
-#: templates/comms/select_location.html
-msgid "Select Your Location"
-msgstr "Wybierz swoją lokalizację"
-
-#: templates/comms/select_location.html
-#: templates/comms/select_location_anesthetist.html
-msgid "Back to Role Selection"
-msgstr "Powrót do wyboru roli"
-
-#: templates/comms/select_location_anesthetist.html
-msgid "Select Operating Room"
-msgstr "Wybierz salę operacyjną"
-
-#: templates/comms/select_location_anesthetist.html
-msgid "Select Your Operating Room"
-msgstr "Wybierz swoją salę operacyjną"
-
-#: templates/comms/select_ward_for_anesthetist.html
-msgid "Select Ward to Communicate"
-msgstr "Wybierz oddział do komunikacji"
-
-#: templates/comms/select_ward_for_anesthetist.html
+#: comms/models.py:12 comms/templates/comms/select_ward_for_anesthetist.html:7
 msgid "Anesthetist"
 msgstr "Anestezjolog"
 
-#: templates/comms/select_ward_for_anesthetist.html
-msgid "Select Ward to Communicate With"
-msgstr "Wybierz oddział z którym chcesz się komunikować"
-
+#: comms/models.py:13
 msgid "Nurse"
 msgstr "Pielęgniarka"
 
+#: comms/models.py:14
 msgid "Surgeon"
 msgstr "Chirurg"
+
+#: comms/models.py:25
+msgid "Internal message code (readonly in admin)"
+msgstr ""
+
+#: comms/models.py:30
+msgid "Role that can send this message"
+msgstr ""
+
+#: comms/models.py:35
+msgid "Role that will receive this message"
+msgstr ""
+
+#: comms/models.py:41
+msgid "Short English description shown on buttons"
+msgstr ""
+
+#: comms/models.py:44
+msgid "Full English description explaining the message"
+msgstr ""
+
+#: comms/models.py:50
+msgid "Short Polish description shown on buttons"
+msgstr ""
+
+#: comms/models.py:53
+msgid "Full Polish description explaining the message"
+msgstr ""
+
+#: comms/models.py:60
+msgid "Bootstrap button color class (danger, warning, success, etc.)"
+msgstr ""
+
+#: comms/models.py:64
+msgid "Order in which buttons are displayed (lower numbers first)"
+msgstr ""
+
+#: comms/models.py:68
+msgid "Whether this message type is currently available"
+msgstr ""
+
+#: comms/models.py:73
+#, fuzzy
+#| msgid "Messages"
+msgid "Message Type"
+msgstr "Wiadomości"
+
+#: comms/models.py:74
+#, fuzzy
+#| msgid "Messages"
+msgid "Message Types"
+msgstr "Wiadomości"
+
+#: comms/models.py:94
+msgid "Can Accept Patients"
+msgstr "Możemy przyjąć pacjenta"
+
+#: comms/models.py:95
+msgid "Surgery Done"
+msgstr "Zapraszamy po pacjenta"
+
+#: comms/models.py:96
+msgid "Patient in the OR"
+msgstr "Pacjent na sali operacyjnej"
+
+#: comms/models.py:111 comms/templates/comms/communication_anesthetist.html:332
+#: comms/templates/comms/select_location.html:16
+#: comms/templates/comms/select_location_anesthetist.html:14
+#: templates/hospital/operating_room_form.html:4
+#: templates/hospital/operating_room_form.html:10
+msgid "Operating Room"
+msgstr "Sala operacyjna"
+
+#: comms/models.py:112 comms/templates/comms/communication_anesthetist.html:337
+#: comms/templates/comms/select_location.html:18
+#: comms/templates/comms/select_ward_for_anesthetist.html:14
+#: templates/hospital/ward_form.html:4 templates/hospital/ward_form.html:10
+msgid "Ward"
+msgstr "Odział"
+
+#: comms/templates/comms/communication.html:255
+msgid "Welcome to DKP System"
+msgstr ""
+
+#: comms/templates/comms/communication.html:256
+msgid "Welcome to the system. Let's perform the setup."
+msgstr ""
+
+#: comms/templates/comms/communication.html:257
+msgid ""
+"We need to ensure your audio is working properly for important notifications."
+msgstr ""
+
+#: comms/templates/comms/communication.html:260
+msgid "Continue"
+msgstr ""
+
+#: comms/templates/comms/communication.html:268
+msgid "Audio Test"
+msgstr ""
+
+#: comms/templates/comms/communication.html:269
+msgid ""
+"Please ensure your speakers or headphones are connected and the volume is "
+"turned up."
+msgstr ""
+
+#: comms/templates/comms/communication.html:272
+msgid "Volume Control"
+msgstr ""
+
+#: comms/templates/comms/communication.html:278
+msgid "Play Test Sound"
+msgstr ""
+
+#: comms/templates/comms/communication.html:282
+msgid "Sound not playing"
+msgstr ""
+
+#: comms/templates/comms/communication.html:285
+msgid "Can you hear the alert sound?"
+msgstr ""
+
+#: comms/templates/comms/communication.html:289
+msgid "No, try again"
+msgstr ""
+
+#: comms/templates/comms/communication.html:292
+msgid "Yes, I can hear it"
+msgstr ""
+
+#: comms/templates/comms/communication.html:308
+#: comms/templates/comms/communication_anesthetist.html:360
+msgid "Connecting..."
+msgstr "Łączenie..."
+
+#: comms/templates/comms/communication.html:315
+msgid "Messages"
+msgstr "Wiadomości"
+
+#: comms/templates/comms/communication.html:318
+#: comms/templates/comms/communication.html:928
+msgid "Acknowledge All"
+msgstr "Potwierdź wszystkie"
+
+#: comms/templates/comms/communication.html:329
+#: comms/templates/comms/communication.html:791
+msgid "from Operating Room"
+msgstr "z sali operacyjnej"
+
+#: comms/templates/comms/communication.html:334
+#: comms/templates/comms/communication.html:797
+msgid "Can accept patients"
+msgstr "Możemy przyjąć pacjenta"
+
+#: comms/templates/comms/communication.html:336
+#: comms/templates/comms/communication.html:799
+msgid "Surgery completed, please pick up patient"
+msgstr "Operacja zakończona, proszę odebrać pacjenta"
+
+#: comms/templates/comms/communication.html:338
+#: comms/templates/comms/communication.html:801
+msgid "Patient is in the operating room"
+msgstr "Pacjent na sali operacyjnej"
+
+#: comms/templates/comms/communication.html:347
+msgid "Acknowledge"
+msgstr "Potwierdź"
+
+#: comms/templates/comms/communication.html:352
+msgid "No new messages"
+msgstr "Brak nowych wiadomości"
+
+#: comms/templates/comms/communication.html:360
+msgid "Send Messages"
+msgstr "Wyślij wiadomości"
+
+#: comms/templates/comms/communication.html:363
+msgid "CAN_ACCEPT_PATIENTS"
+msgstr "MOŻEMY_PRZYJĄĆ_PACJENTA"
+
+#: comms/templates/comms/communication.html:364
+#: comms/templates/comms/communication.html:368
+msgid "to Nurses"
+msgstr "do Pielęgniarek"
+
+#: comms/templates/comms/communication.html:367
+msgid "SURGERY_DONE"
+msgstr "ZAPRASZAMY_PO_PACJENTA"
+
+#: comms/templates/comms/communication.html:371
+msgid "PATIENT_IN_THE_OR"
+msgstr "PACJENT_NA_SALI_OPERACYJNEJ"
+
+#: comms/templates/comms/communication.html:372
+msgid "to Surgeon"
+msgstr "do Chirurgów"
+
+#: comms/templates/comms/communication.html:380
+msgid "Change Location"
+msgstr "Zmień lokalizację"
+
+#: comms/templates/comms/communication.html:381
+#: comms/templates/comms/communication_anesthetist.html:408
+#: comms/templates/comms/select_ward_for_anesthetist.html:21
+msgid "Change Role"
+msgstr "Zmień rolę"
+
+#: comms/templates/comms/communication.html:887
+msgid "Acknowledging..."
+msgstr "Potwierdzanie..."
+
+#: comms/templates/comms/communication_anesthetist.html:282
+msgid "No Recipients Available"
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:283
+msgid "There are no"
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:283
+#, fuzzy
+#| msgid "Connected in"
+msgid "connected to"
+msgstr "Połączeni w"
+
+#: comms/templates/comms/communication_anesthetist.html:284
+msgid "Your message will not be received by anyone."
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:286
+msgid "We suggest calling the ward directly:"
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:288
+#: comms/templates/comms/communication_anesthetist.html:344
+#: comms/templates/comms/communication_anesthetist.html:376
+msgid "Nurses"
+msgstr "Pielęgniarki"
+
+#: comms/templates/comms/communication_anesthetist.html:291
+#: comms/templates/comms/communication_anesthetist.html:352
+#: comms/templates/comms/communication_anesthetist.html:376
+msgid "Surgeons"
+msgstr "Chirurdzy"
+
+#: comms/templates/comms/communication_anesthetist.html:296
+#, fuzzy
+#| msgid "Nurses"
+msgid "Call Nurses"
+msgstr "Pielęgniarki"
+
+#: comms/templates/comms/communication_anesthetist.html:301
+#, fuzzy
+#| msgid "Surgeons"
+msgid "Call Surgeons"
+msgstr "Chirurdzy"
+
+#: comms/templates/comms/communication_anesthetist.html:305
+#: comms/templates/comms/communication_anesthetist.html:312
+#: templates/account/logout.html:26 templates/hospital/hospital_form.html:62
+#: templates/hospital/operating_room_confirm_delete.html:34
+#: templates/hospital/operating_room_form.html:50
+#: templates/hospital/ward_confirm_delete.html:40
+#: templates/hospital/ward_form.html:76
+msgid "Cancel"
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:309
+msgid "Please contact the ward through other means."
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:349
+#: comms/templates/comms/communication_anesthetist.html:357
+#, fuzzy
+#| msgid "Connected in"
+msgid "Connected"
+msgstr "Połączeni w"
+
+#: comms/templates/comms/communication_anesthetist.html:366
+msgid "Send Messages to"
+msgstr "Wyślij wiadomości do"
+
+#: comms/templates/comms/communication_anesthetist.html:375
+msgid "to"
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:377
+msgid "in"
+msgstr ""
+
+#: comms/templates/comms/communication_anesthetist.html:387
+msgid "Recent Messages Sent"
+msgstr "Ostatnio wysłane wiadomości"
+
+#: comms/templates/comms/communication_anesthetist.html:392
+msgid "To"
+msgstr "Do"
+
+#: comms/templates/comms/communication_anesthetist.html:395
+msgid "Acknowledged at"
+msgstr "Potwierdzono o"
+
+#: comms/templates/comms/communication_anesthetist.html:399
+msgid "No messages sent yet"
+msgstr "Brak wysłanych wiadomości"
+
+#: comms/templates/comms/communication_anesthetist.html:406
+msgid "Change Ward"
+msgstr "Zmień oddział"
+
+#: comms/templates/comms/communication_anesthetist.html:407
+#: comms/templates/comms/select_ward_for_anesthetist.html:20
+msgid "Change Operating Room"
+msgstr "Zmień salę operacyjną"
+
+#: comms/templates/comms/role_selection.html:3
+msgid "Choose Role"
+msgstr "Wybierz rolę"
+
+#: comms/templates/comms/role_selection.html:7
+msgid "Direct Communication Portal"
+msgstr "Portal Bezpośredniej Komunikacji"
+
+#: comms/templates/comms/role_selection.html:16
+msgid "Select Your Role"
+msgstr "Wybierz swoją rolę"
+
+#: comms/templates/comms/role_selection.html:23
+msgid "Send messages from Operating Room"
+msgstr "Wysyłaj wiadomości z sali operacyjnej"
+
+#: comms/templates/comms/role_selection.html:25
+#: comms/templates/comms/role_selection.html:27
+msgid "Receive messages in Ward"
+msgstr "Odbieraj wiadomości na oddziale"
+
+#: comms/templates/comms/select_location.html:3
+msgid "Select Location"
+msgstr "Wybierz lokalizację"
+
+#: comms/templates/comms/select_location.html:7
+#: comms/templates/comms/select_location_anesthetist.html:7
+msgid "Role"
+msgstr "Rola"
+
+#: comms/templates/comms/select_location.html:8
+msgid "Select Your Location"
+msgstr "Wybierz swoją lokalizację"
+
+#: comms/templates/comms/select_location.html:26
+#: comms/templates/comms/select_location_anesthetist.html:20
+msgid "Back to Role Selection"
+msgstr "Powrót do wyboru roli"
+
+#: comms/templates/comms/select_location_anesthetist.html:3
+msgid "Select Operating Room"
+msgstr "Wybierz salę operacyjną"
+
+#: comms/templates/comms/select_location_anesthetist.html:8
+msgid "Select Your Operating Room"
+msgstr "Wybierz swoją salę operacyjną"
+
+#: comms/templates/comms/select_ward_for_anesthetist.html:3
+msgid "Select Ward to Communicate"
+msgstr "Wybierz oddział do komunikacji"
+
+#: comms/templates/comms/select_ward_for_anesthetist.html:8
+msgid "Select Ward to Communicate With"
+msgstr "Wybierz oddział z którym chcesz się komunikować"
+
+#: hospital/models.py:44
+msgid "Nurse station telephone number"
+msgstr ""
+
+#: hospital/models.py:50
+msgid "Surgeon contact telephone number"
+msgstr ""
+
+#: templates/account/login.html:6 templates/account/login.html:14
+#: templates/account/login.html:103
+msgid "Sign In"
+msgstr ""
+
+#: templates/account/login.html:18
+msgid "Sign in with:"
+msgstr ""
+
+#: templates/account/login.html:25
+msgid "Sign in with Google"
+msgstr ""
+
+#: templates/account/login.html:28
+msgid "Sign in with Facebook"
+msgstr ""
+
+#: templates/account/login.html:30
+msgid "Sign in with"
+msgstr ""
+
+#: templates/account/login.html:37 templates/account/signup.html:37
+msgid "or"
+msgstr ""
+
+#: templates/account/login.html:53
+msgid "Username or Email"
+msgstr ""
+
+#: templates/account/login.html:60
+msgid "Enter your username or email"
+msgstr ""
+
+#: templates/account/login.html:71 templates/account/signup.html:89
+msgid "Password"
+msgstr ""
+
+#: templates/account/login.html:77
+msgid "Enter your password"
+msgstr ""
+
+#: templates/account/login.html:93
+msgid "Remember me"
+msgstr ""
+
+#: templates/account/login.html:110
+msgid "Forgot your password?"
+msgstr ""
+
+#: templates/account/login.html:117
+msgid "Don't have an account?"
+msgstr ""
+
+#: templates/account/login.html:119
+msgid "Sign up"
+msgstr ""
+
+#: templates/account/logout.html:4 templates/account/logout.html:12
+#: templates/account/logout.html:23
+msgid "Sign Out"
+msgstr ""
+
+#: templates/account/logout.html:14
+msgid "Are you sure you want to sign out?"
+msgstr ""
+
+#: templates/account/signup.html:6 templates/account/signup.html:14
+#: templates/account/signup.html:130
+msgid "Sign Up"
+msgstr ""
+
+#: templates/account/signup.html:18
+msgid "Sign up with:"
+msgstr ""
+
+#: templates/account/signup.html:25
+msgid "Sign up with Google"
+msgstr ""
+
+#: templates/account/signup.html:28
+msgid "Sign up with Facebook"
+msgstr ""
+
+#: templates/account/signup.html:30
+msgid "Sign up with"
+msgstr ""
+
+#: templates/account/signup.html:53
+msgid "Username"
+msgstr ""
+
+#: templates/account/signup.html:60
+msgid "Choose a username"
+msgstr ""
+
+#: templates/account/signup.html:71
+msgid "Email"
+msgstr ""
+
+#: templates/account/signup.html:78
+msgid "Enter your email"
+msgstr ""
+
+#: templates/account/signup.html:95
+msgid "Create a password"
+msgstr ""
+
+#: templates/account/signup.html:103
+msgid "Your password must be at least 8 characters long."
+msgstr ""
+
+#: templates/account/signup.html:109
+msgid "Confirm Password"
+msgstr ""
+
+#: templates/account/signup.html:115
+msgid "Confirm your password"
+msgstr ""
+
+#: templates/account/signup.html:138
+msgid "Already have an account?"
+msgstr ""
+
+#: templates/account/signup.html:140
+msgid "Sign in"
+msgstr ""
+
+#: templates/base.html:7
+msgid "DKP - Hospital Communication System"
+msgstr "DKP - System Komunikacji Szpitalnej"
+
+#: templates/base.html:186
+#, fuzzy
+#| msgid "DKP - Hospital Communication System"
+msgid "DKP Hospital System"
+msgstr "DKP - System Komunikacji Szpitalnej"
+
+#: templates/base.html:195
+msgid "Dashboard"
+msgstr ""
+
+#: templates/base.html:200 templates/hospital/dashboard.html:30
+msgid "Hospital Settings"
+msgstr ""
+
+#: templates/base.html:205 templates/hospital/dashboard.html:41
+#: templates/hospital/ward_list.html:4 templates/hospital/ward_list.html:9
+#, fuzzy
+#| msgid "Ward"
+msgid "Wards"
+msgstr "Odział"
+
+#: templates/base.html:210 templates/hospital/dashboard.html:52
+#: templates/hospital/operating_room_list.html:4
+#: templates/hospital/operating_room_list.html:9
+#, fuzzy
+#| msgid "Operating Room"
+msgid "Operating Rooms"
+msgstr "Sala operacyjna"
+
+#: templates/base.html:215
+#, fuzzy
+#| msgid "Direct Communication Portal"
+msgid "Communication"
+msgstr "Portal Bezpośredniej Komunikacji"
+
+#: templates/base.html:225
+msgid "Admin Panel"
+msgstr ""
+
+#: templates/base.html:227 templates/hospital/dashboard.html:70
+msgid "Logout"
+msgstr ""
+
+#: templates/base.html:238
+#, fuzzy
+#| msgid "DKP - Hospital Communication System"
+msgid "DKP Hospital Communication System"
+msgstr "DKP - System Komunikacji Szpitalnej"
+
+#: templates/base.html:239
+msgid "Login"
+msgstr ""
+
+#: templates/hospital/dashboard.html:4 templates/hospital/dashboard.html:8
+msgid "Control Panel"
+msgstr ""
+
+#: templates/hospital/dashboard.html:13
+msgid "Welcome"
+msgstr ""
+
+#: templates/hospital/dashboard.html:15
+msgid "Current Site"
+msgstr ""
+
+#: templates/hospital/dashboard.html:18 templates/hospital/hospital_form.html:4
+#: templates/hospital/hospital_form.html:10
+#: templates/hospital/operating_room_confirm_delete.html:18
+#: templates/hospital/operating_room_list.html:34
+#: templates/hospital/ward_confirm_delete.html:18
+#: templates/hospital/ward_list.html:34
+msgid "Hospital"
+msgstr ""
+
+#: templates/hospital/dashboard.html:31
+msgid "Edit hospital information"
+msgstr ""
+
+#: templates/hospital/dashboard.html:32
+msgid "Edit Hospital"
+msgstr ""
+
+#: templates/hospital/dashboard.html:42
+msgid "Manage ward locations and contact information"
+msgstr ""
+
+#: templates/hospital/dashboard.html:43
+#, fuzzy
+#| msgid "Change Ward"
+msgid "Manage Wards"
+msgstr "Zmień oddział"
+
+#: templates/hospital/dashboard.html:53
+#, fuzzy
+#| msgid "Change Operating Room"
+msgid "Manage operating room locations"
+msgstr "Zmień salę operacyjną"
+
+#: templates/hospital/dashboard.html:54
+#, fuzzy
+#| msgid "Change Operating Room"
+msgid "Manage Operating Rooms"
+msgstr "Zmień salę operacyjną"
+
+#: templates/hospital/dashboard.html:64
+msgid "Quick Actions"
+msgstr ""
+
+#: templates/hospital/dashboard.html:67
+#, fuzzy
+#| msgid "DKP - Hospital Communication System"
+msgid "Go to Communication System"
+msgstr "DKP - System Komunikacji Szpitalnej"
+
+#: templates/hospital/hospital_form.html:59
+#: templates/hospital/operating_room_form.html:47
+#: templates/hospital/ward_form.html:73
+msgid "Save"
+msgstr ""
+
+#: templates/hospital/operating_room_confirm_delete.html:4
+#: templates/hospital/operating_room_confirm_delete.html:10
+#, fuzzy
+#| msgid "Select Operating Room"
+msgid "Delete Operating Room"
+msgstr "Wybierz salę operacyjną"
+
+#: templates/hospital/operating_room_confirm_delete.html:13
+#: templates/hospital/ward_confirm_delete.html:13
+msgid "Warning!"
+msgstr ""
+
+#: templates/hospital/operating_room_confirm_delete.html:14
+msgid "Are you sure you want to delete this operating room?"
+msgstr ""
+
+#: templates/hospital/operating_room_confirm_delete.html:17
+#: templates/hospital/operating_room_list.html:33
+#: templates/hospital/ward_confirm_delete.html:17
+#: templates/hospital/ward_list.html:33
+msgid "Name"
+msgstr ""
+
+#: templates/hospital/operating_room_confirm_delete.html:24
+#: templates/hospital/ward_confirm_delete.html:30
+msgid "This action cannot be undone."
+msgstr ""
+
+#: templates/hospital/operating_room_confirm_delete.html:31
+#: templates/hospital/ward_confirm_delete.html:37
+msgid "Yes, Delete"
+msgstr ""
+
+#: templates/hospital/operating_room_list.html:12
+#, fuzzy
+#| msgid "Operating Room"
+msgid "Add Operating Room"
+msgstr "Sala operacyjna"
+
+#: templates/hospital/operating_room_list.html:15
+#: templates/hospital/ward_list.html:15
+msgid "Back to Dashboard"
+msgstr ""
+
+#: templates/hospital/operating_room_list.html:35
+#: templates/hospital/ward_list.html:37
+msgid "Actions"
+msgstr ""
+
+#: templates/hospital/operating_room_list.html:46
+#: templates/hospital/ward_list.html:62
+msgid "Edit"
+msgstr ""
+
+#: templates/hospital/operating_room_list.html:49
+#: templates/hospital/ward_list.html:65
+msgid "Delete"
+msgstr ""
+
+#: templates/hospital/operating_room_list.html:57
+#, fuzzy
+#| msgid "Operating Room"
+msgid "No operating rooms found."
+msgstr "Sala operacyjna"
+
+#: templates/hospital/ward_confirm_delete.html:4
+#: templates/hospital/ward_confirm_delete.html:10
+msgid "Delete Ward"
+msgstr ""
+
+#: templates/hospital/ward_confirm_delete.html:14
+msgid "Are you sure you want to delete this ward?"
+msgstr ""
+
+#: templates/hospital/ward_confirm_delete.html:20
+#: templates/hospital/ward_list.html:35
+#, fuzzy
+#| msgid "Nurse"
+msgid "Nurse Phone"
+msgstr "Pielęgniarka"
+
+#: templates/hospital/ward_confirm_delete.html:23
+#: templates/hospital/ward_list.html:36
+#, fuzzy
+#| msgid "Surgery Done"
+msgid "Surgeon Phone"
+msgstr "Zapraszamy po pacjenta"
+
+#: templates/hospital/ward_form.html:55
+msgid "Contact number for the nurse station"
+msgstr ""
+
+#: templates/hospital/ward_form.html:68
+msgid "Contact number for the surgeon"
+msgstr ""
+
+#: templates/hospital/ward_list.html:12
+#, fuzzy
+#| msgid "Ward"
+msgid "Add Ward"
+msgstr "Odział"
+
+#: templates/hospital/ward_list.html:73
+msgid "No wards found."
+msgstr ""
+
+#~ msgid "From"
+#~ msgstr "Z"
+
+#~ msgid "Total"
+#~ msgstr "Razem"
+
+#~ msgid "to Nurses in"
+#~ msgstr "do Pielęgniarek w"
+
+#~ msgid "to Surgeons in"
+#~ msgstr "do Chirurgów w"

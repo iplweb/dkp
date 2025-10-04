@@ -325,9 +325,21 @@
                             <div>
                                 <strong>{% trans message.sender_role.name %}</strong>
                                 {% if message.sender_role.name_en == 'Anesthetist' and message.location_type == 'operating_room' %}
-                                    {% if message.location %}({% trans message.location.name %}){% endif %}
+                                    {% if message.location %}
+                                        <br><small style="color: #666;">{% trans "from Operating Room" %}: {% trans message.location.name %}</small>
+                                    {% endif %}
                                 {% endif %}:<br>
-                                {% trans message.get_message_type_display %}<br>
+                                <strong style="color: #2c3e50;">
+                                    {% if message.message_type == 'CAN_ACCEPT_PATIENTS' %}
+                                        {% trans "Can accept patients" %}
+                                    {% elif message.message_type == 'SURGERY_DONE' %}
+                                        {% trans "Surgery completed, please pick up patient" %}
+                                    {% elif message.message_type == 'PATIENT_IN_THE_OR' %}
+                                        {% trans "Patient is in the operating room" %}
+                                    {% else %}
+                                        {% trans message.get_message_type_display %}
+                                    {% endif %}
+                                </strong><br>
                                 <small>{{ message.sent_at|date:"H:i:s" }}</small>
                             </div>
                             {% if role_name_en != 'Anesthetist' %}
@@ -776,13 +788,23 @@
             // Include operating room name if present (for messages from Anesthetist)
             let senderInfo = `<strong>${data.sender_role}</strong>`;
             if (data.operating_room_name) {
-                senderInfo = `<strong>${data.sender_role}</strong> (${data.operating_room_name})`;
+                senderInfo = `<strong>${data.sender_role}</strong><br><small style="color: #666;">{% trans "from Operating Room" %}: ${data.operating_room_name}</small>`;
+            }
+
+            // Get human-readable message description
+            let messageDescription = data.content;
+            if (data.message_type === 'CAN_ACCEPT_PATIENTS') {
+                messageDescription = '{% trans "Can accept patients" %}';
+            } else if (data.message_type === 'SURGERY_DONE') {
+                messageDescription = '{% trans "Surgery completed, please pick up patient" %}';
+            } else if (data.message_type === 'PATIENT_IN_THE_OR') {
+                messageDescription = '{% trans "Patient is in the operating room" %}';
             }
 
             messageDiv.innerHTML = `
                 <div>
                     ${senderInfo}:<br>
-                    ${data.content}<br>
+                    <strong style="color: #2c3e50;">${messageDescription}</strong><br>
                     <small>${new Date(data.sent_at).toLocaleTimeString()}</small>
                 </div>
                 ${ackButton}
