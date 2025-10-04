@@ -20,6 +20,16 @@ INSTALLED_APPS = [
     'channels',
     'hospital',
     'comms',
+
+    # allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
+
+    # impersonation
+    'impersonate',
 ]
 
 MIDDLEWARE = [
@@ -32,6 +42,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'impersonate.middleware.ImpersonateMiddleware',
 ]
 
 ROOT_URLCONF = 'dkp.urls'
@@ -137,5 +149,66 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django Sites Framework
 SITE_ID = 1
 
-LOGIN_URL = 'admin:login'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = 'account_login'
+LOGIN_REDIRECT_URL = '/hospital/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Allauth settings
+ACCOUNT_LOGIN_METHODS = ['username', 'email']  # Allow both username and email login
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# Social account settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_CLIENT_SECRET', default=''),
+        }
+    },
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+        ],
+        'EXCHANGE_TOKEN': True,
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v17.0',
+        'APP': {
+            'client_id': config('FACEBOOK_APP_ID', default=''),
+            'secret': config('FACEBOOK_APP_SECRET', default=''),
+        }
+    }
+}
+
+# Impersonate settings
+IMPERSONATE = {
+    'REDIRECT_URL': '/hospital/dashboard/',
+    'PAGINATE_COUNT': 20,
+    'REQUIRE_SUPERUSER': True,  # Only superusers can impersonate
+    'ALLOW_SUPERUSER': True,    # Superusers can be impersonated
+    'SEARCH_FIELDS': ['username', 'email', 'first_name', 'last_name'],
+    'LOOKUP_TYPE': 'icontains',
+}

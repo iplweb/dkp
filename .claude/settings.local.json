@@ -10,7 +10,8 @@
       "Bash(pkill:*)",
       "Bash(pip install:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(timeout 3 python dkp/manage.py check)"
     ],
     "deny": [],
     "ask": []

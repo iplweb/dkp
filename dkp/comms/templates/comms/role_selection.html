@@ -4,7 +4,15 @@
 
 {% block content %}
     <div class="card">
-        <h1>{% trans "Direct Communication Protocol" %}</h1>
+        <h1>{% trans "Direct Communication Portal" %}</h1>
+        {% if hospital %}
+            <p style="text-align: center; margin-bottom: 20px;">
+                {{ hospital.name }}
+                {% if hospital.website %}
+                    - <a href="{{ hospital.website }}" target="_blank">{{ hospital.website }}</a>
+                {% endif %}
+            </p>
+        {% endif %}
         <h2 style="text-align: center; margin-bottom: 30px;">{% trans "Select Your Role" %}</h2>
 
         <div class="btn-group">

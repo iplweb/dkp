@@ -162,8 +162,8 @@ msgid "Choose Role"
 msgstr "Wybierz rolę"
 
 #: templates/comms/role_selection.html
-msgid "Direct Communication Protocol"
-msgstr "Protokół Bezpośredniej Komunikacji"
+msgid "Direct Communication Portal"
+msgstr "Portal Bezpośredniej Komunikacji"
 
 #: templates/comms/role_selection.html
 msgid "Select Your Role"

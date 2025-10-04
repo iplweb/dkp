@@ -4,12 +4,21 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db.models import Q
 from django.utils import translation
-from hospital.models import Role, OperatingRoom, Ward
+from django.contrib.sites.shortcuts import get_current_site
+from datetime import timedelta
+from hospital.models import Hospital, Role, OperatingRoom, Ward
 from .models import MessageLog, MessageType
 
 
 def role_selection(request):
     roles = Role.objects.all()
+
+    # Get the hospital for the current site
+    current_site = get_current_site(request)
+    try:
+        hospital = Hospital.objects.get(site=current_site)
+    except Hospital.DoesNotExist:
+        hospital = None
 
     # Get English role names for URLs
     # Temporarily disable translation to get English names
@@ -36,6 +45,7 @@ def role_selection(request):
 
     return render(request, 'comms/role_selection.html', {
         'roles_with_en': roles_with_en,
+        'hospital': hospital,
     })
 
 
@@ -132,8 +142,11 @@ def communication(request, role_name, location_type, location_id):
     # Get recent messages for this role and location
     # Note: Anesthetist messages have location_type='operating_room', but are sent to wards
     # So we need to get messages targeted to this role at this ward location
+    # Filter messages from the last 2 hours only
+    two_hours_ago = timezone.now() - timedelta(hours=2)
     messages = MessageLog.objects.filter(
-        recipient_role=role
+        recipient_role=role,
+        sent_at__gte=two_hours_ago  # Only messages from last 2 hours
     ).filter(
         Q(location_type=location_type, location_id=location_id) |  # Regular messages
         Q(sender_role__name_en='Anesthetist')  # Include all anesthetist messages to this role
@@ -172,8 +185,16 @@ def send_message(request):
         sender_role = Role.objects.get(name_en=sender_role_name)
         recipient_role = Role.objects.get(name_en=recipient_role_name)
 
+        # Get hospital from location
+        if location_type == 'operating_room':
+            location_obj = OperatingRoom.objects.select_related('hospital').get(id=int(location_id))
+        else:
+            location_obj = Ward.objects.select_related('hospital').get(id=int(location_id))
+        hospital = location_obj.hospital
+
         # Create message log
         message = MessageLog.objects.create(
+            hospital=hospital,
             sender_role=sender_role,
             recipient_role=recipient_role,
             message_type=message_type,
@@ -220,5 +241,38 @@ def acknowledge_message(request):
             return JsonResponse({'status': 'success'})
         except MessageLog.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Message not found'}, status=404)
+
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@csrf_exempt
+def acknowledge_all_messages(request):
+    if request.method == 'POST':
+        role_name = request.POST.get('role_name')
+        location_type = request.POST.get('location_type')
+        location_id = request.POST.get('location_id')
+
+        try:
+            role = Role.objects.get(name_en=role_name)
+
+            # Get all unacknowledged messages for this role and location from last 2 hours
+            two_hours_ago = timezone.now() - timedelta(hours=2)
+            messages = MessageLog.objects.filter(
+                recipient_role=role,
+                sent_at__gte=two_hours_ago,
+                acknowledged_at__isnull=True
+            ).filter(
+                Q(location_type=location_type, location_id=location_id) |
+                Q(sender_role__name_en='Anesthetist')
+            )
+
+            # Acknowledge all messages
+            count = messages.update(acknowledged_at=timezone.now())
+
+            return JsonResponse({'status': 'success', 'count': count})
+        except Role.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Role not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error'}, status=400)

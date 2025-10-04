@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Control Panel" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{% trans "Control Panel" %}</h1>
+
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <strong>{% trans "Welcome" %}, {{ user.username }}!</strong>
+                <div class="mt-2">
+                    <strong>{% trans "Current Site" %}:</strong>
+                    <a href="{{ current_site.domain }}" class="alert-link">{{ current_site.name }}</a>
+                    {% if hospital %}
+                        | <strong>{% trans "Hospital" %}:</strong> {{ hospital.name }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-hospital fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">{% trans "Hospital Settings" %}</h5>
+                    <p class="card-text">{% trans "Edit hospital information" %}</p>
+                    <a href="{% url 'hospital:hospital_edit' %}" class="btn btn-primary">{% trans "Edit Hospital" %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-bed fa-3x mb-3 text-success"></i>
+                    <h5 class="card-title">{% trans "Wards" %}</h5>
+                    <p class="card-text">{% trans "Manage ward locations and contact information" %}</p>
+                    <a href="{% url 'hospital:ward_list' %}" class="btn btn-success">{% trans "Manage Wards" %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-procedures fa-3x mb-3 text-danger"></i>
+                    <h5 class="card-title">{% trans "Operating Rooms" %}</h5>
+                    <p class="card-text">{% trans "Manage operating room locations" %}</p>
+                    <a href="{% url 'hospital:operating_room_list' %}" class="btn btn-danger">{% trans "Manage Operating Rooms" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h3 class="mb-3">{% trans "Quick Actions" %}</h3>
+            <div class="btn-group" role="group">
+                <a href="/" class="btn btn-outline-primary">
+                    <i class="fas fa-comments"></i> {% trans "Go to Communication System" %}
+                </a>
+                <a href="{% url 'account_logout' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

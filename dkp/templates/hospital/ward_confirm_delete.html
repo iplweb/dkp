@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Ward" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="mb-4">{% trans "Delete Ward" %}</h1>
+
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">{% trans "Warning!" %}</h5>
+                <p>{% trans "Are you sure you want to delete this ward?" %}</p>
+                <hr>
+                <p class="mb-0">
+                    <strong>{% trans "Name" %}:</strong> {{ ward.name }}<br>
+                    <strong>{% trans "Hospital" %}:</strong> {{ ward.hospital.name }}<br>
+                    {% if ward.nurse_telephone %}
+                        <strong>{% trans "Nurse Phone" %}:</strong> {{ ward.nurse_telephone }}<br>
+                    {% endif %}
+                    {% if ward.surgeon_telephone %}
+                        <strong>{% trans "Surgeon Phone" %}:</strong> {{ ward.surgeon_telephone }}
+                    {% endif %}
+                </p>
+            </div>
+
+            <p class="text-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                {% trans "This action cannot be undone." %}
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times-circle"></i> {% trans "Yes, Delete" %}
+                    </button>
+                    <a href="{% url 'hospital:ward_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> {% trans "Cancel" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

@@ -43,12 +43,23 @@
             background: linear-gradient(45deg, #ff4d4f, #ff9999);
         }
 
+        .status-emoji.reconnecting {
+            background: #ff4d4f;
+            animation: reconnectPulse 1s ease-in-out infinite;
+        }
+
         @keyframes alarmPulse {
             0% { transform: scale(1) rotate(0deg); }
             25% { transform: scale(1.1) rotate(-10deg); }
             50% { transform: scale(1.2) rotate(0deg); }
             75% { transform: scale(1.1) rotate(10deg); }
             100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes reconnectPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
 
         .comm-container {
@@ -263,7 +274,7 @@
                 <div class="volume-display" id="volumeDisplay">50%</div>
             </div>
 
-            <button class="btn" onclick="SetupManager.playTestSound()">
+            <button class="btn btn-primary" onclick="SetupManager.playTestSound()">
                 {% trans "Play Test Sound" %}
             </button>
 
@@ -274,7 +285,7 @@
             <p style="margin-top: 20px;">{% trans "Can you hear the alert sound?" %}</p>
 
             <div class="modal-buttons">
-                <button class="btn" onclick="SetupManager.retryAudioTest()">
+                <button class="btn btn-secondary" onclick="SetupManager.retryAudioTest()">
                     {% trans "No, try again" %}
                 </button>
                 <button class="btn btn-success" onclick="SetupManager.completeSetup()">
@@ -300,7 +311,14 @@
             <div class="comm-container">
             <!-- Messages Panel -->
             <div>
-                <h3>{% trans "Messages" %}</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0;">{% trans "Messages" %}</h3>
+                    {% if role_name_en != 'Anesthetist' and messages %}
+                        <button class="btn btn-warning" onclick="acknowledgeAllMessages()" id="acknowledgeAllBtn">
+                            {% trans "Acknowledge All" %}
+                        </button>
+                    {% endif %}
+                </div>
                 <div class="message-list" id="messageList">
                     {% for message in messages %}
                         <div class="message-item unacknowledged" id="message-{{ message.id }}">
@@ -371,7 +389,7 @@
         const EmojiStates = {
             WAITING: '⏳',
             CONNECTED: '😊',
-            DISCONNECTED: '💀',
+            DISCONNECTED: '❌',
             RECONNECTING: '😔',
             ALERT: '🚨'
         };
@@ -480,8 +498,8 @@
 
             if (!emojiDisplay || !statusEmoji) return;
 
-            // Remove alarm class if present
-            statusEmoji.classList.remove('alarm');
+            // Remove all status classes
+            statusEmoji.classList.remove('alarm', 'reconnecting');
 
             switch(status) {
                 case 'connected':
@@ -492,6 +510,7 @@
                     break;
                 case 'reconnecting':
                     emojiDisplay.textContent = EmojiStates.RECONNECTING;
+                    statusEmoji.classList.add('reconnecting');
                     break;
                 case 'alert':
                     emojiDisplay.textContent = EmojiStates.ALERT;
@@ -836,6 +855,64 @@
                 type: 'acknowledge',
                 message_id: messageId,
                 role: '{{ role_name_en }}'  // Include role for broadcast filtering
+            });
+        }
+
+        function acknowledgeAllMessages() {
+            const btn = document.getElementById('acknowledgeAllBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '{% trans "Acknowledging..." %}';
+            }
+
+            fetch('/acknowledge_all_messages/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: new URLSearchParams({
+                    role_name: '{{ role_name_en }}',
+                    location_type: '{{ location_type }}',
+                    location_id: '{{ location.id }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove all unacknowledged messages from the UI
+                    const messageList = document.getElementById('messageList');
+                    const unacknowledgedMessages = messageList.querySelectorAll('.unacknowledged');
+                    unacknowledgedMessages.forEach(msg => {
+                        msg.classList.remove('unacknowledged');
+                        const button = msg.querySelector('button');
+                        if (button) {
+                            button.remove();
+                        }
+                    });
+
+                    // Hide the Acknowledge All button
+                    if (btn) {
+                        btn.style.display = 'none';
+                    }
+
+                    updateAlertState();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '{% trans "Acknowledge All" %}';
+                }
+            });
+
+            // Broadcast acknowledgment to other users
+            WebSocketManager.send({
+                type: 'acknowledge_all',
+                role: '{{ role_name_en }}',
+                location_type: '{{ location_type }}',
+                location_id: '{{ location.id }}'
             });
         }
 

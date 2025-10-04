@@ -175,12 +175,16 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
             }))
 
     def _create_message_db(self, data):
-        from hospital.models import Role
+        from hospital.models import Role, OperatingRoom
 
         sender_role = Role.objects.get(name_en=data['sender_role'])
         recipient_role = Role.objects.get(name_en=data['recipient_role'])
 
+        # Get hospital from the operating room
+        operating_room = OperatingRoom.objects.select_related('hospital').get(id=int(data['operating_room_id']))
+
         message = MessageLog.objects.create(
+            hospital=operating_room.hospital,
             sender_role=sender_role,
             recipient_role=recipient_role,
             message_type=data['message_type'],
@@ -249,6 +253,12 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         # AnesthetistConsumer receives chat_message events because it monitors nurse/surgeon groups
         # But we don't need to display these messages to the Anesthetist since they sent them
+        # Just silently ignore them to avoid the "No handler" error
+        pass
+
+    async def group_acknowledgment_broadcast(self, event):
+        # AnesthetistConsumer receives these broadcasts because it monitors nurse/surgeon groups
+        # But we don't need to process these here - the anesthetist gets acknowledgments via broadcast_acknowledgment_from_or
         # Just silently ignore them to avoid the "No handler" error
         pass
 
@@ -417,7 +427,7 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
 
         # For nurses/surgeons, they receive messages in wards
         # So we need to filter by messages that were sent from anesthetists to their ward
-        return messages
+        return list(messages)
 
     async def update_user_count(self, connecting):
         from django.core.cache import cache
@@ -478,7 +488,7 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
         )
 
     def _create_message_db(self, data):
-        from hospital.models import Role
+        from hospital.models import Role, OperatingRoom, Ward
 
         sender_role = Role.objects.get(name_en=data['sender_role'])
         recipient_role = Role.objects.get(name_en=data['recipient_role'])
@@ -488,12 +498,22 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
             # Anesthetist sending from operating room
             location_type = 'operating_room'
             location_id = int(data['operating_room_id'])
+            # Get hospital from operating room
+            location_obj = OperatingRoom.objects.select_related('hospital').get(id=location_id)
+            hospital = location_obj.hospital
         else:
             # Regular user
             location_type = data['location_type']
             location_id = int(data['location_id'])
+            # Get hospital from location (ward or operating room)
+            if location_type == 'operating_room':
+                location_obj = OperatingRoom.objects.select_related('hospital').get(id=location_id)
+            else:
+                location_obj = Ward.objects.select_related('hospital').get(id=location_id)
+            hospital = location_obj.hospital
 
         message = MessageLog.objects.create(
+            hospital=hospital,
             sender_role=sender_role,
             recipient_role=recipient_role,
             message_type=data['message_type'],

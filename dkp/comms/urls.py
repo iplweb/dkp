@@ -11,4 +11,5 @@ urlpatterns = [
     path('communication/<str:role_name>/or/<int:or_id>/ward/<int:ward_id>/', views.communication_anesthetist, name='communication_anesthetist'),
     path('send_message/', views.send_message, name='send_message'),
     path('acknowledge_message/', views.acknowledge_message, name='acknowledge_message'),
+    path('acknowledge_all_messages/', views.acknowledge_all_messages, name='acknowledge_all_messages'),
 ]

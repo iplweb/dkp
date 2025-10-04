@@ -6,5 +6,8 @@ from django.conf.urls.i18n import i18n_patterns
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('accounts/', include('allauth.urls')),
+    path('impersonate/', include('impersonate.urls')),
+    path('hospital/', include('hospital.urls')),
     path('', include('comms.urls')),
 ]

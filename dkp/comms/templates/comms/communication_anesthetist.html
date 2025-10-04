@@ -28,6 +28,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: sticky;
             top: 20px;
+            transition: all 0.3s ease;
         }
 
         @media (max-width: 768px) {
@@ -35,6 +36,17 @@
                 font-size: 50px;
                 padding: 10px;
             }
+        }
+
+        .status-emoji.reconnecting {
+            background: #ff4d4f;
+            animation: reconnectPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes reconnectPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
 
         .comm-container {
@@ -270,13 +282,25 @@
             <h2>⚠️ {% trans "No Recipients Available" %}</h2>
             <p>{% trans "There are no" %} <span id="missingRole"></span> {% trans "connected to" %} {{ ward.name }}.</p>
             <p>{% trans "Your message will not be received by anyone." %}</p>
-            {% if ward.telephone %}
+            {% if ward.nurse_telephone or ward.surgeon_telephone %}
             <p>{% trans "We suggest calling the ward directly:" %}</p>
-            <div class="phone-number">📞 {{ ward.telephone }}</div>
+            {% if ward.nurse_telephone %}
+            <div class="phone-number">📞 {% trans "Nurses" %}: {{ ward.nurse_telephone }}</div>
+            {% endif %}
+            {% if ward.surgeon_telephone %}
+            <div class="phone-number">📞 {% trans "Surgeons" %}: {{ ward.surgeon_telephone }}</div>
+            {% endif %}
             <div class="modal-buttons">
-                <a href="tel:{{ ward.telephone }}" class="btn btn-success" target="_blank" onclick="handleCallWard(event)">
-                    {% trans "Call Ward" %}
+                {% if ward.nurse_telephone %}
+                <a href="tel:{{ ward.nurse_telephone }}" class="btn btn-success" target="_blank" onclick="handleCallWard(event, 'nurse')">
+                    {% trans "Call Nurses" %}
                 </a>
+                {% endif %}
+                {% if ward.surgeon_telephone %}
+                <a href="tel:{{ ward.surgeon_telephone }}" class="btn btn-success" target="_blank" onclick="handleCallWard(event, 'surgeon')">
+                    {% trans "Call Surgeons" %}
+                </a>
+                {% endif %}
                 <button class="btn btn-danger" onclick="cancelSend()">
                     {% trans "Cancel" %}
                 </button>
@@ -400,14 +424,19 @@
         const EmojiStates = {
             WAITING: '⏳',
             CONNECTED: '😊',
-            DISCONNECTED: '💀',
+            DISCONNECTED: '❌',
             RECONNECTING: '😔'
         };
 
         // Update emoji display based on status
         function updateEmojiStatus(status) {
             const emojiDisplay = document.getElementById('emojiDisplay');
-            if (!emojiDisplay) return;
+            const statusEmoji = document.getElementById('statusEmoji');
+
+            if (!emojiDisplay || !statusEmoji) return;
+
+            // Remove all status classes
+            statusEmoji.classList.remove('reconnecting');
 
             switch(status) {
                 case 'connected':
@@ -418,6 +447,7 @@
                     break;
                 case 'reconnecting':
                     emojiDisplay.textContent = EmojiStates.RECONNECTING;
+                    statusEmoji.classList.add('reconnecting');
                     break;
                 case 'waiting':
                 default:
@@ -731,12 +761,17 @@
             pendingMessage = null;
         }
 
-        function handleCallWard(event) {
+        function handleCallWard(event, phoneType) {
             // Prevent immediate navigation
             event.preventDefault();
 
-            // Get the phone number
-            const phoneNumber = '{{ ward.telephone }}';
+            // Get the appropriate phone number
+            let phoneNumber;
+            if (phoneType === 'nurse') {
+                phoneNumber = '{{ ward.nurse_telephone }}';
+            } else if (phoneType === 'surgeon') {
+                phoneNumber = '{{ ward.surgeon_telephone }}';
+            }
 
             // Close the modal first
             document.getElementById('noRecipientsModal').classList.remove('active');

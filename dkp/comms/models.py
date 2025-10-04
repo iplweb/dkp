@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from hospital.models import Role, OperatingRoom, Ward
+from hospital.models import Hospital, Role, OperatingRoom, Ward
 
 
 class MessageType(models.Model):
@@ -14,6 +14,11 @@ class MessageType(models.Model):
         ('Surgeon', _('Surgeon')),
     ]
 
+    hospital = models.ForeignKey(
+        Hospital,
+        on_delete=models.CASCADE,
+        related_name='message_types'
+    )
     code = models.CharField(
         max_length=50,
         unique=True,
@@ -91,6 +96,11 @@ class MessageLog(models.Model):
         ('PATIENT_IN_THE_OR', _('Patient in the OR')),
     ]
 
+    hospital = models.ForeignKey(
+        Hospital,
+        on_delete=models.CASCADE,
+        related_name='message_logs'
+    )
     sender_role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='sent_messages')
     recipient_role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='received_messages')
     message_type = models.CharField(max_length=50, choices=MESSAGE_TYPES)
