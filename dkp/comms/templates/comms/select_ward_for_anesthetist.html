@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}{% trans "Select Ward to Communicate" %} - {% trans operating_room.name %} - DKP{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h1>{% trans "Anesthetist" %} - {% trans operating_room.name %}</h1>
+        <h2 style="text-align: center; margin-bottom: 30px;">{% trans "Select Ward to Communicate With" %}</h2>
+
+        <div class="btn-group">
+            {% for ward in wards %}
+                <a href="{% url 'comms:communication_anesthetist' 'Anesthetist' operating_room.id ward.id %}" class="role-card">
+                    <h3>{% trans ward.name %}</h3>
+                    <p>{% trans "Ward" %}</p>
+                </a>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{% url 'comms:select_location' 'Anesthetist' %}" class="btn">← {% trans "Change Operating Room" %}</a>
+            <a href="{% url 'comms:role_selection' %}" class="btn">{% trans "Change Role" %}</a>
+        </div>
+    </div>
+{% endblock %}

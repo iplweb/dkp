@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(django-admin:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(make:*)",
+      "Bash(redis-cli:*)",
+      "Bash(pkill:*)",
+      "Bash(pip install:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

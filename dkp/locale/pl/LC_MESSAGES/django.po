@@ -1,0 +1,222 @@
+# Polish translations for DKP Hospital Communication System
+# Copyright (C) 2025 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: DKP Hospital Communication System\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-04 17:53+0200\n"
+"PO-Revision-Date: 2025-10-04 18:00+0200\n"
+"Last-Translator: DKP Team\n"
+"Language-Team: Polish <LL@li.org>\n"
+"Language: pl_PL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
+"(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
+"n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+#: comms/models.py
+msgid "Can Accept Patients"
+msgstr "Możemy przyjąć pacjenta"
+
+#: comms/models.py
+msgid "Surgery Done"
+msgstr "Zapraszamy po pacjenta"
+
+#: comms/models.py
+msgid "Patient in the OR"
+msgstr "Pacjent na sali operacyjnej"
+
+#: comms/models.py templates/comms/communication_anesthetist.html
+#: templates/comms/select_location.html
+#: templates/comms/select_location_anesthetist.html
+msgid "Operating Room"
+msgstr "Sala operacyjna"
+
+#: comms/models.py templates/comms/communication_anesthetist.html
+#: templates/comms/select_location.html
+#: templates/comms/select_ward_for_anesthetist.html
+msgid "Ward"
+msgstr "Odział"
+
+#: templates/base.html
+msgid "DKP - Hospital Communication System"
+msgstr "DKP - System Komunikacji Szpitalnej"
+
+#: templates/comms/communication.html
+#: templates/comms/communication_anesthetist.html
+msgid "Connecting..."
+msgstr "Łączenie..."
+
+#: templates/comms/communication.html
+msgid "Messages"
+msgstr "Wiadomości"
+
+#: templates/comms/communication.html
+msgid "Acknowledge"
+msgstr "Potwierdź"
+
+#: templates/comms/communication.html
+msgid "No new messages"
+msgstr "Brak nowych wiadomości"
+
+#: templates/comms/communication.html
+msgid "Send Messages"
+msgstr "Wyślij wiadomości"
+
+#: templates/comms/communication.html
+#: templates/comms/communication_anesthetist.html
+msgid "CAN_ACCEPT_PATIENTS"
+msgstr "MOŻEMY_PRZYJĄĆ_PACJENTA"
+
+#: templates/comms/communication.html
+msgid "to Nurses"
+msgstr "do Pielęgniarek"
+
+#: templates/comms/communication.html
+#: templates/comms/communication_anesthetist.html
+msgid "SURGERY_DONE"
+msgstr "ZAPRASZAMY_PO_PACJENTA"
+
+#: templates/comms/communication.html
+#: templates/comms/communication_anesthetist.html
+msgid "PATIENT_IN_THE_OR"
+msgstr "PACJENT_NA_SALI_OPERACYJNEJ"
+
+#: templates/comms/communication.html
+msgid "to Surgeon"
+msgstr "do Chirurgów"
+
+#: templates/comms/communication.html
+msgid "Change Location"
+msgstr "Zmień lokalizację"
+
+#: templates/comms/communication.html
+#: templates/comms/communication_anesthetist.html
+#: templates/comms/select_ward_for_anesthetist.html
+msgid "Change Role"
+msgstr "Zmień rolę"
+
+#: templates/comms/communication_anesthetist.html
+msgid "From"
+msgstr "Z"
+
+#: templates/comms/communication_anesthetist.html
+msgid "To"
+msgstr "Do"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Connected in"
+msgstr "Połączeni w"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Nurses"
+msgstr "Pielęgniarki"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Surgeons"
+msgstr "Chirurdzy"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Total"
+msgstr "Razem"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Send Messages to"
+msgstr "Wyślij wiadomości do"
+
+#: templates/comms/communication_anesthetist.html
+msgid "to Nurses in"
+msgstr "do Pielęgniarek w"
+
+#: templates/comms/communication_anesthetist.html
+msgid "to Surgeons in"
+msgstr "do Chirurgów w"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Recent Messages Sent"
+msgstr "Ostatnio wysłane wiadomości"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Acknowledged at"
+msgstr "Potwierdzono o"
+
+#: templates/comms/communication_anesthetist.html
+msgid "No messages sent yet"
+msgstr "Brak wysłanych wiadomości"
+
+#: templates/comms/communication_anesthetist.html
+msgid "Change Ward"
+msgstr "Zmień oddział"
+
+#: templates/comms/communication_anesthetist.html
+#: templates/comms/select_ward_for_anesthetist.html
+msgid "Change Operating Room"
+msgstr "Zmień salę operacyjną"
+
+#: templates/comms/role_selection.html
+msgid "Choose Role"
+msgstr "Wybierz rolę"
+
+#: templates/comms/role_selection.html
+msgid "Direct Communication Protocol"
+msgstr "Protokół Bezpośredniej Komunikacji"
+
+#: templates/comms/role_selection.html
+msgid "Select Your Role"
+msgstr "Wybierz swoją rolę"
+
+#: templates/comms/role_selection.html
+msgid "Send messages from Operating Room"
+msgstr "Wysyłaj wiadomości z sali operacyjnej"
+
+#: templates/comms/role_selection.html
+msgid "Receive messages in Ward"
+msgstr "Odbieraj wiadomości na oddziale"
+
+#: templates/comms/select_location.html
+msgid "Select Location"
+msgstr "Wybierz lokalizację"
+
+#: templates/comms/select_location.html
+#: templates/comms/select_location_anesthetist.html
+msgid "Role"
+msgstr "Rola"
+
+#: templates/comms/select_location.html
+msgid "Select Your Location"
+msgstr "Wybierz swoją lokalizację"
+
+#: templates/comms/select_location.html
+#: templates/comms/select_location_anesthetist.html
+msgid "Back to Role Selection"
+msgstr "Powrót do wyboru roli"
+
+#: templates/comms/select_location_anesthetist.html
+msgid "Select Operating Room"
+msgstr "Wybierz salę operacyjną"
+
+#: templates/comms/select_location_anesthetist.html
+msgid "Select Your Operating Room"
+msgstr "Wybierz swoją salę operacyjną"
+
+#: templates/comms/select_ward_for_anesthetist.html
+msgid "Select Ward to Communicate"
+msgstr "Wybierz oddział do komunikacji"
+
+#: templates/comms/select_ward_for_anesthetist.html
+msgid "Anesthetist"
+msgstr "Anestezjolog"
+
+#: templates/comms/select_ward_for_anesthetist.html
+msgid "Select Ward to Communicate With"
+msgstr "Wybierz oddział z którym chcesz się komunikować"
+
+msgid "Nurse"
+msgstr "Pielęgniarka"
+
+msgid "Surgeon"
+msgstr "Chirurg"

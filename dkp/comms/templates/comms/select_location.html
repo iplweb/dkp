@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}{% trans "Select Location" %} - {% trans role.name %} - DKP{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h1>{% trans "Role" %}: {% trans role.name %}</h1>
+        <h2 style="text-align: center; margin-bottom: 30px;">{% trans "Select Your Location" %}</h2>
+
+        <div class="btn-group">
+            {% for location in locations %}
+                <a href="{% url 'comms:communication' role_name_en location_type location.id %}" class="role-card">
+                    <h3>{% trans location.name %}</h3>
+                    <p>
+                        {% if role_name_en == 'Anesthetist' %}
+                            {% trans "Operating Room" %}
+                        {% else %}
+                            {% trans "Ward" %}
+                        {% endif %}
+                    </p>
+                </a>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{% url 'comms:role_selection' %}" class="btn">← {% trans "Back to Role Selection" %}</a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dkp"
+version = "1.0.0"
+description = "Direct Communication Protocol - Hospital Communication System"
+authors = [{name = "Developer"}]
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "Django>=5.0.0",
+    "channels>=4.1.0",
+    "channels-redis>=4.2.0",
+    "psycopg2-binary>=2.9.9",
+    "python-decouple>=3.8",
+    "daphne>=4.1.0",
+    "whitenoise>=6.7.0",
+    "django-redis>=5.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "django-debug-toolbar>=4.3.0",
+    "pytest>=8.2.0",
+    "pytest-django>=4.8.0",
+    "black>=24.4.0",
+    "isort>=5.13.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dkp*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  migrations
+)/
+'''
+
+[tool.isort]
+profile = "django"
+line_length = 88
+skip_glob = ["**/migrations/*.py"]

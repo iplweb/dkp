@@ -1,0 +1,925 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans role.name %} - {% trans location.name %} - DKP{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .main-container {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 80px 1fr;
+                gap: 10px;
+            }
+        }
+
+        .status-emoji {
+            font-size: 80px;
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .status-emoji {
+                font-size: 50px;
+                padding: 10px;
+            }
+        }
+
+        .status-emoji.alarm {
+            animation: alarmPulse 0.5s ease-in-out infinite;
+            background: linear-gradient(45deg, #ff4d4f, #ff9999);
+        }
+
+        @keyframes alarmPulse {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-10deg); }
+            50% { transform: scale(1.2) rotate(0deg); }
+            75% { transform: scale(1.1) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .comm-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comm-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .send-panel {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .message-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .heartbeat-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: heartbeat 2s infinite;
+        }
+
+        .heartbeat-indicator.active {
+            background-color: #27ae60;
+        }
+
+        @keyframes heartbeat {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .info-panel {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        body.alerting {
+            animation: alertBackgroundFlash 1s ease-in-out infinite;
+        }
+
+        @keyframes alertBackgroundFlash {
+            0%, 100% { background-color: #f5f5f5; }
+            50% { background-color: #ff4d4f; }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .volume-control {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .volume-control label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .volume-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-display {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .audio-status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .audio-status.playing {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .audio-status.stopped {
+            background: #fdf2f2;
+            color: #e74c3c;
+        }
+    </style>
+    <audio id="notificationSound" src="{% static 'audio/alert.mp3' %}" preload="auto"></audio>
+{% endblock %}
+
+{% block content %}
+    <!-- Setup Modals -->
+    <div id="welcomeModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>{% trans "Welcome to DKP System" %}</h2>
+            <p>{% trans "Welcome to the system. Let's perform the setup." %}</p>
+            <p>{% trans "We need to ensure your audio is working properly for important notifications." %}</p>
+            <div class="modal-buttons">
+                <button class="btn btn-success" onclick="SetupManager.proceedToAudioTest()">
+                    {% trans "Continue" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="audioModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>{% trans "Audio Test" %}</h2>
+            <p>{% trans "Please ensure your speakers or headphones are connected and the volume is turned up." %}</p>
+
+            <div class="volume-control">
+                <label for="volumeSlider">{% trans "Volume Control" %}</label>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
+                <div class="volume-display" id="volumeDisplay">50%</div>
+            </div>
+
+            <button class="btn" onclick="SetupManager.playTestSound()">
+                {% trans "Play Test Sound" %}
+            </button>
+
+            <div id="audioStatus" class="audio-status stopped" style="display: none;">
+                {% trans "Sound not playing" %}
+            </div>
+
+            <p style="margin-top: 20px;">{% trans "Can you hear the alert sound?" %}</p>
+
+            <div class="modal-buttons">
+                <button class="btn" onclick="SetupManager.retryAudioTest()">
+                    {% trans "No, try again" %}
+                </button>
+                <button class="btn btn-success" onclick="SetupManager.completeSetup()">
+                    {% trans "Yes, I can hear it" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Emoji Status Indicator -->
+        <div id="statusEmoji" class="status-emoji">
+            <div id="emojiDisplay">⏳</div>
+        </div>
+
+        <div class="card">
+            <div class="info-panel">
+                <strong>{% trans role.name %}</strong> - {% trans location.name %}
+                <span class="heartbeat-indicator" id="heartbeatIndicator"></span>
+                <div class="connection-status" id="connectionStatus">{% trans "Connecting..." %}</div>
+            </div>
+
+            <div class="comm-container">
+            <!-- Messages Panel -->
+            <div>
+                <h3>{% trans "Messages" %}</h3>
+                <div class="message-list" id="messageList">
+                    {% for message in messages %}
+                        <div class="message-item unacknowledged" id="message-{{ message.id }}">
+                            <div>
+                                <strong>{% trans message.sender_role.name %}</strong>
+                                {% if message.sender_role.name_en == 'Anesthetist' and message.location_type == 'operating_room' %}
+                                    {% if message.location %}({% trans message.location.name %}){% endif %}
+                                {% endif %}:<br>
+                                {% trans message.get_message_type_display %}<br>
+                                <small>{{ message.sent_at|date:"H:i:s" }}</small>
+                            </div>
+                            {% if role_name_en != 'Anesthetist' %}
+                                <button class="btn btn-success" onclick="acknowledgeMessage({{ message.id }})">
+                                    {% trans "Acknowledge" %}
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <p style="text-align: center; color: #7f8c8d;">{% trans "No new messages" %}</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Send Panel (only for Anesthetist) -->
+            {% if role_name_en == 'Anesthetist' %}
+                <div class="send-panel">
+                    <h3>{% trans "Send Messages" %}</h3>
+                    <div class="message-buttons">
+                        <button class="btn btn-danger" onclick="sendMessage('CAN_ACCEPT_PATIENTS', 'Nurse')">
+                            {% trans "CAN_ACCEPT_PATIENTS" %}
+                            <br><small>{% trans "to Nurses" %}</small>
+                        </button>
+                        <button class="btn btn-danger" onclick="sendMessage('SURGERY_DONE', 'Nurse')">
+                            {% trans "SURGERY_DONE" %}
+                            <br><small>{% trans "to Nurses" %}</small>
+                        </button>
+                        <button class="btn btn-danger" onclick="sendMessage('PATIENT_IN_THE_OR', 'Surgeon')">
+                            {% trans "PATIENT_IN_THE_OR" %}
+                            <br><small>{% trans "to Surgeon" %}</small>
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="{% url 'comms:select_location' role_name_en %}" class="btn">← {% trans "Change Location" %}</a>
+                <a href="{% url 'comms:role_selection' %}" class="btn">{% trans "Change Role" %}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        const role = '{{ role.name }}';
+        const locationType = '{{ location_type }}';
+        const locationId = {{ location.id }};
+        // Auto-detect protocol: use ws:// for http:// and wss:// for https://
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/comms/{{ role_name_en }}/${locationType}/${locationId}/`;
+        const isAlertRole = {% if role_name_en == 'Nurse' or role_name_en == 'Surgeon' %}true{% else %}false{% endif %};
+        const alertAudio = document.getElementById('notificationSound');
+
+        // Emoji states
+        const EmojiStates = {
+            WAITING: '⏳',
+            CONNECTED: '😊',
+            DISCONNECTED: '💀',
+            RECONNECTING: '😔',
+            ALERT: '🚨'
+        };
+
+        // Setup Manager for initial audio configuration
+        const SetupManager = {
+            setupComplete: false,
+
+            init() {
+                // Show welcome modal on page load
+                document.getElementById('welcomeModal').classList.add('active');
+                this.setupVolumeControl();
+            },
+
+            setupVolumeControl() {
+                const volumeSlider = document.getElementById('volumeSlider');
+                const volumeDisplay = document.getElementById('volumeDisplay');
+
+                if (volumeSlider && alertAudio) {
+                    // Set initial volume
+                    alertAudio.volume = volumeSlider.value / 100;
+
+                    // Update volume on slider change
+                    volumeSlider.addEventListener('input', (e) => {
+                        const volume = e.target.value;
+                        alertAudio.volume = volume / 100;
+                        volumeDisplay.textContent = `${volume}%`;
+                    });
+                }
+            },
+
+            proceedToAudioTest() {
+                document.getElementById('welcomeModal').classList.remove('active');
+                document.getElementById('audioModal').classList.add('active');
+            },
+
+            playTestSound() {
+                const audioStatus = document.getElementById('audioStatus');
+
+                if (alertAudio) {
+                    // Stop any existing playback
+                    alertAudio.pause();
+                    alertAudio.currentTime = 0;
+
+                    // Play the test sound
+                    alertAudio.loop = false;
+                    const playPromise = alertAudio.play();
+
+                    if (playPromise && typeof playPromise.then === 'function') {
+                        playPromise.then(() => {
+                            audioStatus.style.display = 'block';
+                            audioStatus.className = 'audio-status playing';
+                            audioStatus.textContent = '🔊 Playing alert sound...';
+
+                            // Show stopped status after sound ends
+                            alertAudio.addEventListener('ended', () => {
+                                audioStatus.className = 'audio-status stopped';
+                                audioStatus.textContent = '✓ Sound playback complete';
+                            }, { once: true });
+                        }).catch(e => {
+                            console.error('Could not play test sound:', e);
+                            audioStatus.style.display = 'block';
+                            audioStatus.className = 'audio-status stopped';
+                            audioStatus.textContent = '❌ Could not play sound. Check your browser permissions.';
+                        });
+                    }
+                }
+            },
+
+            retryAudioTest() {
+                // Reset audio status
+                const audioStatus = document.getElementById('audioStatus');
+                audioStatus.style.display = 'none';
+
+                // Play test sound again
+                this.playTestSound();
+            },
+
+            completeSetup() {
+                // Stop the audio immediately
+                if (alertAudio) {
+                    alertAudio.pause();
+                    alertAudio.currentTime = 0;
+                    alertAudio.loop = false;
+                }
+
+                // Hide audio modal
+                document.getElementById('audioModal').classList.remove('active');
+
+                // Mark setup as complete
+                this.setupComplete = true;
+
+                // Update emoji to waiting
+                updateEmojiStatus('waiting');
+
+                // Now connect to WebSocket
+                console.log('Setup complete, connecting to WebSocket...');
+                WebSocketManager.connect();
+            }
+        };
+
+        // Update emoji display based on status
+        function updateEmojiStatus(status) {
+            const emojiDisplay = document.getElementById('emojiDisplay');
+            const statusEmoji = document.getElementById('statusEmoji');
+
+            if (!emojiDisplay || !statusEmoji) return;
+
+            // Remove alarm class if present
+            statusEmoji.classList.remove('alarm');
+
+            switch(status) {
+                case 'connected':
+                    emojiDisplay.textContent = EmojiStates.CONNECTED;
+                    break;
+                case 'disconnected':
+                    emojiDisplay.textContent = EmojiStates.DISCONNECTED;
+                    break;
+                case 'reconnecting':
+                    emojiDisplay.textContent = EmojiStates.RECONNECTING;
+                    break;
+                case 'alert':
+                    emojiDisplay.textContent = EmojiStates.ALERT;
+                    statusEmoji.classList.add('alarm');
+                    break;
+                case 'waiting':
+                default:
+                    emojiDisplay.textContent = EmojiStates.WAITING;
+                    break;
+            }
+        }
+
+        // WebSocket Connection Manager - Ensures only ONE connection at a time
+        const WebSocketManager = {
+            socket: null,
+            connectionState: 'disconnected', // 'disconnected', 'connecting', 'connected', 'reconnecting'
+            reconnectTimer: null,
+            heartbeatCheckTimer: null,
+            lastHeartbeat: Date.now(),
+            connectionAttempts: 0,
+            maxReconnectDelay: 30000,
+            baseReconnectDelay: 1000,
+
+            // Cleanup all timers
+            clearAllTimers() {
+                if (this.reconnectTimer) {
+                    clearTimeout(this.reconnectTimer);
+                    this.reconnectTimer = null;
+                }
+                if (this.heartbeatCheckTimer) {
+                    clearInterval(this.heartbeatCheckTimer);
+                    this.heartbeatCheckTimer = null;
+                }
+            },
+
+            // Ensure only one connection exists
+            connect() {
+                // If already connected or connecting, do nothing
+                if (this.connectionState === 'connected' || this.connectionState === 'connecting') {
+                    console.log(`Already ${this.connectionState}, skipping connection attempt`);
+                    return;
+                }
+
+                // Clean up any existing connection
+                this.disconnect(false);
+
+                this.connectionState = 'connecting';
+                console.log(`Creating WebSocket connection (attempt ${this.connectionAttempts + 1})`);
+
+                try {
+                    this.socket = new WebSocket(wsUrl);
+                    this.setupEventHandlers();
+                } catch (error) {
+                    console.error('Failed to create WebSocket:', error);
+                    this.connectionState = 'disconnected';
+                    this.scheduleReconnect();
+                }
+            },
+
+            setupEventHandlers() {
+                if (!this.socket) return;
+
+                this.socket.onopen = (e) => {
+                    console.log('WebSocket connected');
+                    this.connectionState = 'connected';
+                    this.lastHeartbeat = Date.now();
+                    this.connectionAttempts = 0;
+
+                    // Update UI
+                    document.getElementById('connectionStatus').textContent = 'Connected';
+                    document.getElementById('connectionStatus').className = 'connection-status connected';
+                    document.getElementById('heartbeatIndicator').className = 'heartbeat-indicator active';
+                    updateEmojiStatus('connected');
+                    enableMessageButtons();
+
+                    // Start heartbeat monitoring
+                    this.startMonitoring();
+                };
+
+                this.socket.onmessage = (e) => {
+                    const data = JSON.parse(e.data);
+                    this.handleMessage(data);
+                };
+
+                this.socket.onclose = (e) => {
+                    console.log(`WebSocket disconnected with code: ${e.code}, reason: ${e.reason}`);
+
+                    // Update state
+                    this.connectionState = 'disconnected';
+                    this.socket = null;
+
+                    // Update UI
+                    document.getElementById('connectionStatus').textContent = 'Disconnected';
+                    document.getElementById('connectionStatus').className = 'connection-status disconnected';
+                    document.getElementById('heartbeatIndicator').className = 'heartbeat-indicator';
+                    updateEmojiStatus('disconnected');
+                    disableMessageButtons();
+
+                    // Clear monitoring timers
+                    this.stopMonitoring();
+
+                    // Only reconnect if not a manual close
+                    if (e.code !== 1000 && e.code !== 1001) {
+                        this.scheduleReconnect();
+                    }
+                };
+
+                this.socket.onerror = (e) => {
+                    console.error('WebSocket error:', e);
+                };
+            },
+
+            handleMessage(data) {
+                if (data.type === 'heartbeat') {
+                    this.lastHeartbeat = Date.now();
+                } else if (data.type === 'message') {
+                    addMessageToList(data);
+                    showNotification();
+                    updateAlertState();
+                } else if (data.type === 'broadcast_acknowledge') {
+                    // Handle broadcast acknowledgment from other users
+                    handleBroadcastAcknowledgment(data);
+                }
+            },
+
+            disconnect(manual = true) {
+                // Clear all timers first
+                this.clearAllTimers();
+
+                // Close socket if it exists
+                if (this.socket) {
+                    try {
+                        if (this.socket.readyState === WebSocket.OPEN ||
+                            this.socket.readyState === WebSocket.CONNECTING) {
+                            this.socket.close(manual ? 1000 : 1001);
+                        }
+                    } catch (e) {
+                        console.error('Error closing socket:', e);
+                    }
+                    this.socket = null;
+                }
+
+                this.connectionState = 'disconnected';
+            },
+
+            scheduleReconnect() {
+                // Prevent multiple reconnect timers
+                if (this.reconnectTimer || this.connectionState === 'reconnecting') {
+                    return;
+                }
+
+                this.connectionState = 'reconnecting';
+                updateEmojiStatus('reconnecting');
+                const delay = Math.min(this.baseReconnectDelay * Math.pow(2, this.connectionAttempts), this.maxReconnectDelay);
+                this.connectionAttempts++;
+
+                console.log(`Scheduling reconnection in ${delay}ms (attempt ${this.connectionAttempts})`);
+                document.getElementById('connectionStatus').textContent = `Reconnecting in ${Math.round(delay/1000)}s...`;
+
+                this.reconnectTimer = setTimeout(() => {
+                    this.reconnectTimer = null;
+                    this.connectionState = 'disconnected'; // Reset state before connecting
+                    this.connect();
+                }, delay);
+            },
+
+            startMonitoring() {
+                // Clear any existing monitoring timers
+                this.stopMonitoring();
+
+                // Check heartbeat every second
+                this.heartbeatCheckTimer = setInterval(() => {
+                    if (this.connectionState === 'connected' &&
+                        Date.now() - this.lastHeartbeat > 5000) {
+                        console.log('Heartbeat timeout - disconnecting and reconnecting');
+                        this.disconnect(false);
+                        this.scheduleReconnect();
+                    }
+                }, 1000);
+            },
+
+            stopMonitoring() {
+                if (this.heartbeatCheckTimer) {
+                    clearInterval(this.heartbeatCheckTimer);
+                    this.heartbeatCheckTimer = null;
+                }
+            },
+
+            send(data) {
+                if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    this.socket.send(JSON.stringify(data));
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        function startAlerting() {
+            if (!isAlertRole) {
+                return;
+            }
+            if (!document.body.classList.contains('alerting')) {
+                document.body.classList.add('alerting');
+            }
+            if (alertAudio) {
+                alertAudio.loop = true;
+                if (alertAudio.paused) {
+                    alertAudio.currentTime = 0;
+                    const playPromise = alertAudio.play();
+                    if (playPromise && typeof playPromise.catch === 'function') {
+                        playPromise.catch(e => console.log('Could not play alert sound:', e));
+                    }
+                }
+            }
+        }
+
+        function stopAlerting() {
+            if (!isAlertRole) {
+                return;
+            }
+            if (document.body.classList.contains('alerting')) {
+                document.body.classList.remove('alerting');
+            }
+            if (alertAudio) {
+                alertAudio.pause();
+                alertAudio.currentTime = 0;
+                alertAudio.loop = false;
+            }
+        }
+
+        function updateAlertState() {
+            const hasUnacknowledged = document.querySelector('.message-item.unacknowledged') !== null;
+
+            if (hasUnacknowledged) {
+                // Show alert emoji for everyone
+                updateEmojiStatus('alert');
+
+                // Start sound/flashing only for alert roles
+                if (isAlertRole) {
+                    startAlerting();
+                }
+            } else {
+                // Show connected emoji and stop alerting
+                if (WebSocketManager.connectionState === 'connected') {
+                    updateEmojiStatus('connected');
+                }
+
+                if (isAlertRole) {
+                    stopAlerting();
+                }
+            }
+        }
+
+        function addMessageToList(data) {
+            const messageList = document.getElementById('messageList');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-item unacknowledged';
+            messageDiv.id = `message-${data.message_id}`;
+
+            const ackButton = role !== 'Anesthetist' ?
+                `<button class="btn btn-success" onclick="acknowledgeMessage(${data.message_id})">Acknowledge</button>` : '';
+
+            // Include operating room name if present (for messages from Anesthetist)
+            let senderInfo = `<strong>${data.sender_role}</strong>`;
+            if (data.operating_room_name) {
+                senderInfo = `<strong>${data.sender_role}</strong> (${data.operating_room_name})`;
+            }
+
+            messageDiv.innerHTML = `
+                <div>
+                    ${senderInfo}:<br>
+                    ${data.content}<br>
+                    <small>${new Date(data.sent_at).toLocaleTimeString()}</small>
+                </div>
+                ${ackButton}
+            `;
+
+            messageList.insertBefore(messageDiv, messageList.firstChild);
+            updateAlertState();
+        }
+
+        function sendMessage(messageType, recipientRole) {
+            // Send via WebSocket Manager
+            const sent = WebSocketManager.send({
+                type: 'send_message',
+                sender_role: '{{ role_name_en }}',
+                recipient_role: recipientRole,
+                message_type: messageType,
+                location_type: locationType,
+                location_id: locationId
+            });
+
+            if (!sent) {
+                console.error('WebSocket is not connected');
+                alert('Cannot send message: WebSocket is disconnected. Please wait for reconnection.');
+            }
+        }
+
+        function disableMessageButtons() {
+            const buttons = document.querySelectorAll('.message-buttons button');
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+        }
+
+        function enableMessageButtons() {
+            const buttons = document.querySelectorAll('.message-buttons button');
+            buttons.forEach(button => {
+                button.disabled = false;
+            });
+        }
+
+        function acknowledgeMessage(messageId) {
+            fetch('/acknowledge_message/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: new URLSearchParams({
+                    message_id: messageId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const messageDiv = document.getElementById(`message-${messageId}`);
+                    if (messageDiv) {
+                        messageDiv.classList.remove('unacknowledged');
+                        const button = messageDiv.querySelector('button');
+                        if (button) {
+                            button.remove();
+                        }
+                    }
+                    updateAlertState();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            // Also send via WebSocket Manager to broadcast to other users
+            WebSocketManager.send({
+                type: 'acknowledge',
+                message_id: messageId,
+                role: '{{ role_name_en }}'  // Include role for broadcast filtering
+            });
+        }
+
+        function handleBroadcastAcknowledgment(data) {
+            // Handle acknowledgment broadcast from other users of the same role
+            // This is triggered when someone else acknowledges a message
+            if (data.message_ids && Array.isArray(data.message_ids)) {
+                data.message_ids.forEach(messageId => {
+                    const messageDiv = document.getElementById(`message-${messageId}`);
+                    if (messageDiv && messageDiv.classList.contains('unacknowledged')) {
+                        // Remove unacknowledged class
+                        messageDiv.classList.remove('unacknowledged');
+
+                        // Remove acknowledge button
+                        const button = messageDiv.querySelector('button');
+                        if (button) {
+                            button.remove();
+                        }
+
+                        // Add a note that it was acknowledged by another user
+                        const noteSpan = document.createElement('span');
+                        noteSpan.style.color = '#27ae60';
+                        noteSpan.style.fontSize = '14px';
+                        noteSpan.textContent = ' (Acknowledged by another user)';
+                        messageDiv.querySelector('div').appendChild(noteSpan);
+                    }
+                });
+
+                // Update alert state after handling broadcast
+                updateAlertState();
+            }
+        }
+
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.style.display = 'block';
+            notification.textContent = 'New message received!';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Initialize setup manager on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            SetupManager.init();
+            // Initially disable buttons until setup is complete and connection is established
+            disableMessageButtons();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            WebSocketManager.disconnect(true);
+            stopAlerting();
+        });
+
+        // Handle visibility changes - but don't create multiple connections
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Page is hidden
+                console.log('Page hidden');
+            } else {
+                // Page is visible again, check connection
+                console.log('Page visible again, checking connection');
+                // Only connect if disconnected
+                if (WebSocketManager.connectionState === 'disconnected') {
+                    WebSocketManager.connect();
+                }
+            }
+        });
+    </script>
+{% endblock %}

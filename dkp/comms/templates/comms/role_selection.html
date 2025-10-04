@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}{% trans "Choose Role" %} - DKP{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h1>{% trans "Direct Communication Protocol" %}</h1>
+        <h2 style="text-align: center; margin-bottom: 30px;">{% trans "Select Your Role" %}</h2>
+
+        <div class="btn-group">
+            {% for item in roles_with_en %}
+                <a href="{% url 'comms:select_location' item.name_en %}" class="role-card">
+                    <h3>{% trans item.role.name %}</h3>
+                    <p>{% if item.name_en == 'Anesthetist' %}
+                        {% trans "Send messages from Operating Room" %}
+                    {% elif item.name_en == 'Nurse' %}
+                        {% trans "Receive messages in Ward" %}
+                    {% elif item.name_en == 'Surgeon' %}
+                        {% trans "Receive messages in Ward" %}
+                    {% endif %}</p>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
