@@ -48,6 +48,15 @@
             animation: reconnectPulse 1s ease-in-out infinite;
         }
 
+        .connection-status.reconnecting {
+            background-color: #ff4d4f !important;
+            color: white !important;
+            font-size: 20px !important;
+            font-weight: bold !important;
+            padding: 10px 20px !important;
+            animation: reconnectPulse 1s ease-in-out infinite;
+        }
+
         @keyframes alarmPulse {
             0% { transform: scale(1) rotate(0deg); }
             25% { transform: scale(1.1) rotate(-10deg); }
@@ -64,8 +73,15 @@
 
         .comm-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 20px;
+        }
+
+        .comm-container.has-send-panel {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .comm-container.messages-only {
+            grid-template-columns: 1fr;
         }
 
         @media (max-width: 768px) {
@@ -270,8 +286,8 @@
 
             <div class="volume-control">
                 <label for="volumeSlider">{% trans "Volume Control" %}</label>
-                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
-                <div class="volume-display" id="volumeDisplay">50%</div>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="80">
+                <div class="volume-display" id="volumeDisplay">80%</div>
             </div>
 
             <button class="btn btn-primary" onclick="SetupManager.playTestSound()">
@@ -308,7 +324,7 @@
                 <div class="connection-status" id="connectionStatus">{% trans "Connecting..." %}</div>
             </div>
 
-            <div class="comm-container">
+            <div class="comm-container {% if role_name_en == 'Anesthetist' %}has-send-panel{% else %}messages-only{% endif %}">
             <!-- Messages Panel -->
             <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -323,13 +339,17 @@
                     {% for message in messages %}
                         <div class="message-item unacknowledged" id="message-{{ message.id }}">
                             <div>
-                                <strong>{% trans message.sender_role.name %}</strong>
-                                {% if message.sender_role.name_en == 'Anesthetist' and message.location_type == 'operating_room' %}
-                                    {% if message.location %}
-                                        <br><small style="color: #666;">{% trans "from Operating Room" %}: {% trans message.location.name %}</small>
+                                <div style="font-size: 16px; margin-bottom: 8px;">
+                                    <strong>{% trans message.sender_role.name %}</strong>
+                                    {% if message.sender_role.name_en == 'Anesthetist' and message.location_type == 'operating_room' %}
+                                        {% if message.location %}
+                                            <div style="background: #e3f2fd; padding: 8px 12px; border-radius: 6px; margin-top: 6px; border-left: 4px solid #2196f3;">
+                                                <strong style="color: #1976d2; font-size: 18px;">{% trans "from Operating Room" %}: {% trans message.location.name %}</strong>
+                                            </div>
+                                        {% endif %}
                                     {% endif %}
-                                {% endif %}:<br>
-                                <strong style="color: #2c3e50;">
+                                </div>
+                                <div style="font-size: 20px; font-weight: 600; color: #2c3e50; margin: 12px 0;">
                                     {% if message.message_type == 'CAN_ACCEPT_PATIENTS' %}
                                         {% trans "Can accept patients" %}
                                     {% elif message.message_type == 'SURGERY_DONE' %}
@@ -339,8 +359,8 @@
                                     {% else %}
                                         {% trans message.get_message_type_display %}
                                     {% endif %}
-                                </strong><br>
-                                <small>{{ message.sent_at|date:"H:i:s" }}</small>
+                                </div>
+                                <div style="font-size: 14px; color: #666;">{{ message.sent_at|date:"H:i:s" }}</div>
                             </div>
                             {% if role_name_en != 'Anesthetist' %}
                                 <button class="btn btn-success" onclick="acknowledgeMessage({{ message.id }})">
@@ -543,8 +563,8 @@
             heartbeatCheckTimer: null,
             lastHeartbeat: Date.now(),
             connectionAttempts: 0,
-            maxReconnectDelay: 30000,
-            baseReconnectDelay: 1000,
+            maxReconnectDelay: 10000,  // Max 10 seconds
+            baseReconnectDelay: 2000,  // Start at 2 seconds
 
             // Cleanup all timers
             clearAllTimers() {
@@ -680,9 +700,24 @@
                 this.connectionAttempts++;
 
                 console.log(`Scheduling reconnection in ${delay}ms (attempt ${this.connectionAttempts})`);
-                document.getElementById('connectionStatus').textContent = `Reconnecting in ${Math.round(delay/1000)}s...`;
+
+                // Live countdown timer
+                let remainingSeconds = Math.ceil(delay / 1000);
+                const statusElement = document.getElementById('connectionStatus');
+                statusElement.className = 'connection-status reconnecting';
+
+                const updateCountdown = () => {
+                    if (remainingSeconds > 0) {
+                        statusElement.textContent = `Brak połączenia. Ponowna próba za ${remainingSeconds}...`;
+                        remainingSeconds--;
+                    }
+                };
+
+                updateCountdown(); // Initial display
+                const countdownInterval = setInterval(updateCountdown, 1000);
 
                 this.reconnectTimer = setTimeout(() => {
+                    clearInterval(countdownInterval);
                     this.reconnectTimer = null;
                     this.connectionState = 'disconnected'; // Reset state before connecting
                     this.connect();
@@ -787,8 +822,13 @@
 
             // Include operating room name if present (for messages from Anesthetist)
             let senderInfo = `<strong>${data.sender_role}</strong>`;
+            let operatingRoomBadge = '';
             if (data.operating_room_name) {
-                senderInfo = `<strong>${data.sender_role}</strong><br><small style="color: #666;">{% trans "from Operating Room" %}: ${data.operating_room_name}</small>`;
+                operatingRoomBadge = `
+                    <div style="background: #e3f2fd; padding: 8px 12px; border-radius: 6px; margin-top: 6px; border-left: 4px solid #2196f3;">
+                        <strong style="color: #1976d2; font-size: 18px;">{% trans "from Operating Room" %}: ${data.operating_room_name}</strong>
+                    </div>
+                `;
             }
 
             // Get human-readable message description
@@ -803,9 +843,14 @@
 
             messageDiv.innerHTML = `
                 <div>
-                    ${senderInfo}:<br>
-                    <strong style="color: #2c3e50;">${messageDescription}</strong><br>
-                    <small>${new Date(data.sent_at).toLocaleTimeString()}</small>
+                    <div style="font-size: 16px; margin-bottom: 8px;">
+                        ${senderInfo}
+                        ${operatingRoomBadge}
+                    </div>
+                    <div style="font-size: 20px; font-weight: 600; color: #2c3e50; margin: 12px 0;">
+                        ${messageDescription}
+                    </div>
+                    <div style="font-size: 14px; color: #666;">${new Date(data.sent_at).toLocaleTimeString()}</div>
                 </div>
                 ${ackButton}
             `;

@@ -43,6 +43,15 @@
             animation: reconnectPulse 1s ease-in-out infinite;
         }
 
+        .connection-status.reconnecting {
+            background-color: #ff4d4f !important;
+            color: white !important;
+            font-size: 20px !important;
+            font-weight: bold !important;
+            padding: 10px 20px !important;
+            animation: reconnectPulse 1s ease-in-out infinite;
+        }
+
         @keyframes reconnectPulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -70,7 +79,113 @@
         .message-buttons {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
+        }
+
+        .message-buttons button {
+            color: white;
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
+                        0 1px 2px rgba(0, 0, 0, 0.06),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .message-buttons button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1),
+                        0 2px 4px rgba(0, 0, 0, 0.06),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .message-buttons button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1),
+                        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message-buttons button strong {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .message-buttons button small {
+            opacity: 0.95;
+            font-size: 13px;
+        }
+
+        /* Button color variants based on MessageType.button_color */
+        .message-buttons .btn-danger {
+            background: #e53e3e;
+            border: 2px solid #c53030;
+        }
+
+        .message-buttons .btn-danger:hover:not(:disabled) {
+            background: #c53030;
+            border-color: #9b2c2c;
+        }
+
+        .message-buttons .btn-warning {
+            background: #ed8936;
+            border: 2px solid #dd6b20;
+        }
+
+        .message-buttons .btn-warning:hover:not(:disabled) {
+            background: #dd6b20;
+            border-color: #c05621;
+        }
+
+        .message-buttons .btn-success {
+            background: #48bb78;
+            border: 2px solid #38a169;
+        }
+
+        .message-buttons .btn-success:hover:not(:disabled) {
+            background: #38a169;
+            border-color: #2f855a;
+        }
+
+        .message-buttons .btn-primary {
+            background: #5a67d8;
+            border: 2px solid #4c51bf;
+        }
+
+        .message-buttons .btn-primary:hover:not(:disabled) {
+            background: #4c51bf;
+            border-color: #434190;
+        }
+
+        .message-buttons .btn-info {
+            background: #4299e1;
+            border: 2px solid #3182ce;
+        }
+
+        .message-buttons .btn-info:hover:not(:disabled) {
+            background: #3182ce;
+            border-color: #2c5282;
+        }
+
+        .message-buttons .btn-secondary {
+            background: #718096;
+            border: 2px solid #4a5568;
+        }
+
+        .message-buttons .btn-secondary:hover:not(:disabled) {
+            background: #4a5568;
+            border-color: #2d3748;
         }
 
         .location-info {
@@ -256,8 +371,9 @@
 
         .message-status {
             font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 8px;
+            font-weight: 500;
         }
 
         .sent-messages {
@@ -468,8 +584,8 @@
             userCountTimer: null,
             lastHeartbeat: Date.now(),
             connectionAttempts: 0,
-            maxReconnectDelay: 30000,
-            baseReconnectDelay: 1000,
+            maxReconnectDelay: 10000,  // Max 10 seconds
+            baseReconnectDelay: 2000,  // Start at 2 seconds
 
             // Cleanup all timers
             clearAllTimers() {
@@ -637,9 +753,24 @@
                 this.connectionAttempts++;
 
                 console.log(`Scheduling reconnection in ${delay}ms (attempt ${this.connectionAttempts})`);
-                document.getElementById('connectionStatus').textContent = `Reconnecting in ${Math.round(delay/1000)}s...`;
+
+                // Live countdown timer
+                let remainingSeconds = Math.ceil(delay / 1000);
+                const statusElement = document.getElementById('connectionStatus');
+                statusElement.className = 'connection-status reconnecting';
+
+                const updateCountdown = () => {
+                    if (remainingSeconds > 0) {
+                        statusElement.textContent = `Brak połączenia. Ponowna próba za ${remainingSeconds}...`;
+                        remainingSeconds--;
+                    }
+                };
+
+                updateCountdown(); // Initial display
+                const countdownInterval = setInterval(updateCountdown, 1000);
 
                 this.reconnectTimer = setTimeout(() => {
+                    clearInterval(countdownInterval);
                     this.reconnectTimer = null;
                     this.connectionState = 'disconnected'; // Reset state before connecting
                     this.connect();
