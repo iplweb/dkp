@@ -10,8 +10,9 @@ class OperatingRoomAdmin(admin.ModelAdmin):
 
 @admin.register(Ward)
 class WardAdmin(admin.ModelAdmin):
-    list_display = ['name']
+    list_display = ['name', 'nurse_telephone', 'surgeon_telephone']
     search_fields = ['name']
+    fields = ['name', 'nurse_telephone', 'surgeon_telephone']
 
 
 @admin.register(Role)

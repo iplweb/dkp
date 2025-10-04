@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'channels',
     'hospital',
     'comms',
@@ -132,6 +133,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['mp3', 'wav', 'ogg', 'm4a']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Django Sites Framework
+SITE_ID = 1
 
 LOGIN_URL = 'admin:login'
 LOGIN_REDIRECT_URL = '/'
