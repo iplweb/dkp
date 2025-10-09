@@ -60,3 +60,6 @@ coverage.xml
 
 # pytest
 .pytest_cache/
+.env.production
+.env
+.autoenv.zsh
