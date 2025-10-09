@@ -395,11 +395,13 @@
     <!-- No Recipients Warning Modal -->
     <div id="noRecipientsModal" class="modal-overlay">
         <div class="modal-content">
-            <h2>⚠️ {% trans "No Recipients Available" %}</h2>
-            <p>{% trans "There are no" %} <span id="missingRole"></span> {% trans "connected to" %} {{ ward.name }}.</p>
-            <p>{% trans "Your message will not be received by anyone." %}</p>
+            <h2>⚠️ {% trans "Message Logged - No Recipients Connected" %}</h2>
+            <p>{% trans "Your message has been logged in the system with timestamp." %}</p>
+            <p><strong>{% trans "However, there are no" %} <span id="missingRole"></span> {% trans "connected to" %} {{ ward.name }}.</strong></p>
+            <p>{% trans "The message was NOT delivered to anyone." %}</p>
             {% if ward.nurse_telephone or ward.surgeon_telephone %}
-            <p>{% trans "We suggest calling the ward directly:" %}</p>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+            <p><strong>{% trans "Consider calling the ward directly:" %}</strong></p>
             {% if ward.nurse_telephone %}
             <div class="phone-number">📞 {% trans "Nurses" %}: {{ ward.nurse_telephone }}</div>
             {% endif %}
@@ -409,23 +411,22 @@
             <div class="modal-buttons">
                 {% if ward.nurse_telephone %}
                 <a href="tel:{{ ward.nurse_telephone }}" class="btn btn-success" target="_blank" onclick="handleCallWard(event, 'nurse')">
-                    {% trans "Call Nurses" %}
+                    📞 {% trans "Call Nurses" %}
                 </a>
                 {% endif %}
                 {% if ward.surgeon_telephone %}
                 <a href="tel:{{ ward.surgeon_telephone }}" class="btn btn-success" target="_blank" onclick="handleCallWard(event, 'surgeon')">
-                    {% trans "Call Surgeons" %}
+                    📞 {% trans "Call Surgeons" %}
                 </a>
                 {% endif %}
-                <button class="btn btn-danger" onclick="cancelSend()">
-                    {% trans "Cancel" %}
+                <button class="btn btn-primary" onclick="closeModal()">
+                    {% trans "OK" %}
                 </button>
             </div>
             {% else %}
-            <p>{% trans "Please contact the ward through other means." %}</p>
             <div class="modal-buttons">
-                <button class="btn btn-danger" onclick="cancelSend()">
-                    {% trans "Cancel" %}
+                <button class="btn btn-primary" onclick="closeModal()">
+                    {% trans "OK" %}
                 </button>
             </div>
             {% endif %}
@@ -572,9 +573,6 @@
             }
         }
 
-        // Variables for pending message
-        let pendingMessage = null;
-
         // WebSocket Connection Manager - Ensures only ONE connection at a time
         const WebSocketManager = {
             socket: null,
@@ -712,8 +710,15 @@
                 } else if (data.type === 'message_status') {
                     // Store mapping of message type to message ID
                     messageTypeToMessageId[data.message_type] = data.message_id;
+                    // Determine recipient role from message type (we need to infer it)
+                    let recipientRole = 'Unknown';
+                    if (data.message_type === 'CAN_ACCEPT_PATIENTS' || data.message_type === 'SURGERY_DONE') {
+                        recipientRole = 'Nurse';
+                    } else if (data.message_type === 'PATIENT_IN_THE_OR') {
+                        recipientRole = 'Surgeon';
+                    }
                     // Update the UI to show the message was sent
-                    updateMessageStatusUI(data.message_type, data.status, data.count);
+                    updateMessageStatusUI(data.message_type, data.status, data.count, recipientRole);
                     // Add new message to the list
                     addNewMessageToList(data.message_id, data.message_type, data.timestamp);
                 } else if (data.type === 'acknowledgment_update') {
@@ -827,17 +832,13 @@
             // Check recipient availability
             const nurseCount = parseInt(document.getElementById('nurseCount').textContent) || 0;
             const surgeonCount = parseInt(document.getElementById('surgeonCount').textContent) || 0;
-
             const recipientCount = recipientRole === 'Nurse' ? nurseCount : surgeonCount;
 
-            if (recipientCount === 0) {
-                // Show warning modal
-                showNoRecipientsModal(recipientRole, messageType);
-                return;
-            }
-
-            // Proceed with sending
+            // Always send the message - it will be logged even if no recipients
             doSendMessage(messageType, recipientRole);
+
+            // If no recipients, we'll show modal after the message is sent
+            // The modal will be triggered from updateMessageStatusUI when it receives count=0
         }
 
         function doSendMessage(messageType, recipientRole) {
@@ -873,23 +874,14 @@
         }
 
         function showNoRecipientsModal(recipientRole, messageType) {
-            pendingMessage = { messageType, recipientRole };
+            // Message was already sent, just show the modal
             document.getElementById('missingRole').textContent = recipientRole + 's';
             document.getElementById('noRecipientsModal').classList.add('active');
         }
 
-        function closeNoRecipientsModal() {
+        function closeModal() {
+            // Simply close the modal
             document.getElementById('noRecipientsModal').classList.remove('active');
-            // Send anyway
-            if (pendingMessage) {
-                doSendMessage(pendingMessage.messageType, pendingMessage.recipientRole);
-                pendingMessage = null;
-            }
-        }
-
-        function cancelSend() {
-            document.getElementById('noRecipientsModal').classList.remove('active');
-            pendingMessage = null;
         }
 
         function handleCallWard(event, phoneType) {
@@ -905,8 +897,7 @@
             }
 
             // Close the modal first
-            document.getElementById('noRecipientsModal').classList.remove('active');
-            pendingMessage = null;
+            closeModal();
 
             // Small delay to ensure modal closes, then open tel: link in new window
             setTimeout(() => {
@@ -928,7 +919,7 @@
             });
         }
 
-        function updateMessageStatusUI(messageType, status, count) {
+        function updateMessageStatusUI(messageType, status, count, recipientRole) {
             const statusElement = document.getElementById(`status-${messageType}`);
 
             // Find the button for this message type
@@ -948,8 +939,15 @@
                     statusText = '⏳ Sending...';
                     statusColor = '#f39c12';
                 } else if (status === 'sent') {
-                    statusText = `✓ Sent to ${count} recipient${count !== 1 ? 's' : ''}`;
-                    statusColor = '#3498db';
+                    if (count === 0) {
+                        statusText = `⚠️ Logged - No recipients connected`;
+                        statusColor = '#e74c3c';
+                        // Show modal instead of alert
+                        showNoRecipientsModal(recipientRole || 'Nurse', messageType);
+                    } else {
+                        statusText = `✓ Sent to ${count} recipient${count !== 1 ? 's' : ''}`;
+                        statusColor = '#3498db';
+                    }
                     // Re-enable the button after successful send
                     if (targetButton) {
                         targetButton.disabled = false;

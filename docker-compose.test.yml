@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+    container_name: dkp_app_test
+    env_file:
+      - .env.production.local
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    networks:
+      - dkp_network
+    ports:
+      - "8000:8000"
+    command: ["python", "dkp/manage.py", "runserver", "0.0.0.0:8000"]
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: dkp_postgres_test
+    environment:
+      POSTGRES_DB: dkp
+      POSTGRES_USER: dkp
+      POSTGRES_PASSWORD: dkp123
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - dkp_network
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dkp -d dkp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: dkp_redis_test
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_test_data:/data
+    networks:
+      - dkp_network
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  dkp_network:
+    driver: bridge
+
+volumes:
+  postgres_test_data:
+    driver: local
+  redis_test_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+  logs_volume:
+    driver: local

@@ -31,7 +31,9 @@
             <thead>
                 <tr>
                     <th>{% trans "Name" %}</th>
+                    {% if user.is_superuser %}
                     <th>{% trans "Hospital" %}</th>
+                    {% endif %}
                     <th>{% trans "Nurse Phone" %}</th>
                     <th>{% trans "Surgeon Phone" %}</th>
                     <th>{% trans "Actions" %}</th>
@@ -41,7 +43,9 @@
                 {% for ward in wards %}
                 <tr>
                     <td>{{ ward.name }}</td>
+                    {% if user.is_superuser %}
                     <td>{{ ward.hospital.name }}</td>
+                    {% endif %}
                     <td>
                         {% if ward.nurse_telephone %}
                             <i class="fas fa-phone"></i> {{ ward.nurse_telephone }}
@@ -69,7 +73,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted">
+                    <td colspan="{% if user.is_superuser %}5{% else %}4{% endif %}" class="text-center text-muted">
                         {% trans "No wards found." %}
                     </td>
                 </tr>

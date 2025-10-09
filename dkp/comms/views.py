@@ -99,10 +99,10 @@ def communication_anesthetist(request, role_name, or_id, ward_id):
 
     # Get recent messages sent from this OR to this ward
     messages = MessageLog.objects.filter(
-        location_type='operating_room',
-        location_id=or_id,
+        operating_room_id=or_id,
+        ward_id=ward_id,
         recipient_role__name_en__in=['Nurse', 'Surgeon']
-    ).select_related('sender_role', 'recipient_role').order_by('-sent_at')[:10]
+    ).select_related('sender_role', 'recipient_role', 'operating_room', 'ward').order_by('-sent_at')[:10]
 
     # Get message types available for anesthetist
     message_types = MessageType.objects.filter(
@@ -140,22 +140,25 @@ def communication(request, role_name, location_type, location_id):
         location = Ward.objects.get(id=location_id)
 
     # Get recent messages for this role and location
-    # Note: Anesthetist messages have location_type='operating_room', but are sent to wards
-    # So we need to get messages targeted to this role at this ward location
     # Filter messages from the last 2 hours only
     two_hours_ago = timezone.now() - timedelta(hours=2)
-    messages = MessageLog.objects.filter(
-        recipient_role=role,
-        sent_at__gte=two_hours_ago  # Only messages from last 2 hours
-    ).filter(
-        Q(location_type=location_type, location_id=location_id) |  # Regular messages
-        Q(sender_role__name_en='Anesthetist')  # Include all anesthetist messages to this role
-    ).filter(
-        acknowledged_at__isnull=True
-    ).select_related('sender_role', 'recipient_role').order_by('-sent_at')
 
-    # The location property is already available on MessageLog model
-    # It automatically fetches the correct location based on location_type and location_id
+    if location_type == 'ward':
+        # Nurses/Surgeons in wards receive messages sent to their ward
+        messages = MessageLog.objects.filter(
+            recipient_role=role,
+            ward_id=location_id,
+            sent_at__gte=two_hours_ago,
+            acknowledged_at__isnull=True
+        ).select_related('sender_role', 'recipient_role', 'operating_room', 'ward').order_by('-sent_at')
+    else:
+        # For operating rooms (if ever needed)
+        messages = MessageLog.objects.filter(
+            recipient_role=role,
+            operating_room_id=location_id,
+            sent_at__gte=two_hours_ago,
+            acknowledged_at__isnull=True
+        ).select_related('sender_role', 'recipient_role', 'operating_room', 'ward').order_by('-sent_at')
 
     # Get all roles for sending messages
     all_roles = Role.objects.all()
@@ -179,18 +182,15 @@ def send_message(request):
         sender_role_name = request.POST.get('sender_role')
         recipient_role_name = request.POST.get('recipient_role')
         message_type = request.POST.get('message_type')
-        location_type = request.POST.get('location_type')
-        location_id = request.POST.get('location_id')
+        operating_room_id = request.POST.get('operating_room_id')
+        ward_id = request.POST.get('ward_id')
 
         sender_role = Role.objects.get(name_en=sender_role_name)
         recipient_role = Role.objects.get(name_en=recipient_role_name)
 
-        # Get hospital from location
-        if location_type == 'operating_room':
-            location_obj = OperatingRoom.objects.select_related('hospital').get(id=int(location_id))
-        else:
-            location_obj = Ward.objects.select_related('hospital').get(id=int(location_id))
-        hospital = location_obj.hospital
+        # Get hospital from operating room
+        operating_room = OperatingRoom.objects.select_related('hospital').get(id=int(operating_room_id))
+        hospital = operating_room.hospital
 
         # Create message log
         message = MessageLog.objects.create(
@@ -199,15 +199,15 @@ def send_message(request):
             recipient_role=recipient_role,
             message_type=message_type,
             content=message_type,
-            location_type=location_type,
-            location_id=int(location_id)
+            operating_room_id=int(operating_room_id),
+            ward_id=int(ward_id)
         )
 
         # Send via WebSocket
         from channels.layers import get_channel_layer
         channel_layer = get_channel_layer()
 
-        group_name = f"{recipient_role.name.lower()}_{location_type}_{location_id}"
+        group_name = f"{recipient_role.name.lower()}_ward_{ward_id}"
         channel_layer.group_send(
             group_name,
             {
@@ -217,8 +217,8 @@ def send_message(request):
                 'recipient_role': recipient_role.name,
                 'message_type': message_type,
                 'content': message.content,
-                'location_type': location_type,
-                'location_id': location_id,
+                'operating_room_id': operating_room_id,
+                'ward_id': ward_id,
                 'sent_at': message.sent_at.isoformat(),
             }
         )
@@ -257,14 +257,21 @@ def acknowledge_all_messages(request):
 
             # Get all unacknowledged messages for this role and location from last 2 hours
             two_hours_ago = timezone.now() - timedelta(hours=2)
-            messages = MessageLog.objects.filter(
-                recipient_role=role,
-                sent_at__gte=two_hours_ago,
-                acknowledged_at__isnull=True
-            ).filter(
-                Q(location_type=location_type, location_id=location_id) |
-                Q(sender_role__name_en='Anesthetist')
-            )
+
+            if location_type == 'ward':
+                messages = MessageLog.objects.filter(
+                    recipient_role=role,
+                    ward_id=location_id,
+                    sent_at__gte=two_hours_ago,
+                    acknowledged_at__isnull=True
+                )
+            else:
+                messages = MessageLog.objects.filter(
+                    recipient_role=role,
+                    operating_room_id=location_id,
+                    sent_at__gte=two_hours_ago,
+                    acknowledged_at__isnull=True
+                )
 
             # Acknowledge all messages
             count = messages.update(acknowledged_at=timezone.now())

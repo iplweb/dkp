@@ -1,0 +1,937 @@
+{% extends 'base.html' %}
+{% load static stats_filters i18n %}
+
+{% block title %}Statistics - {{ hospital.name }} - DKP{% endblock %}
+
+{% block extra_head %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+
+<style>
+    .stats-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .period-selector {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .period-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .period-buttons .btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .period-buttons .btn.active {
+        background: #3498db;
+        color: white;
+    }
+
+    .period-buttons .btn:not(.active) {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    .period-buttons .btn:hover:not(.active) {
+        background: #bdc3c7;
+    }
+
+    .date-navigation {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .date-navigation .btn {
+        padding: 8px 12px;
+        background: #95a5a6;
+        color: white;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+
+    .date-navigation .btn:hover {
+        background: #7f8c8d;
+    }
+
+    .date-picker-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        padding: 4px 12px;
+        border-radius: 4px;
+        border: 2px solid #3498db;
+    }
+
+    .date-picker-container input {
+        border: none;
+        padding: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 140px;
+        background: transparent;
+    }
+
+    .date-picker-container input:focus {
+        outline: none;
+    }
+
+    .date-picker-container .calendar-icon {
+        font-size: 18px;
+        color: #3498db;
+    }
+
+    .export-button {
+        background: #27ae60 !important;
+        color: white !important;
+    }
+
+    .export-button:hover {
+        background: #229954 !important;
+    }
+
+    .filter-toggle-btn {
+        background: #3498db !important;
+        color: white !important;
+        padding: 8px 16px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .filter-toggle-btn:hover {
+        background: #2980b9 !important;
+    }
+
+    #filterIndicator {
+        color: #f39c12;
+        font-weight: 600;
+    }
+
+    #toggleIcon {
+        font-size: 12px;
+        transition: transform 0.2s;
+    }
+
+    #toggleIcon.expanded {
+        transform: rotate(180deg);
+    }
+
+    .filter-panel {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+        border: 2px solid #3498db;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .filter-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 20px;
+    }
+
+    .filter-section h4 {
+        color: #2c3e50;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #3498db;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-count {
+        font-size: 14px;
+        color: #7f8c8d;
+        font-weight: normal;
+    }
+
+    .filter-checkboxes {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .filter-checkboxes::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .filter-checkboxes::-webkit-scrollbar-track {
+        background: #ecf0f1;
+        border-radius: 3px;
+    }
+
+    .filter-checkboxes::-webkit-scrollbar-thumb {
+        background: #3498db;
+        border-radius: 3px;
+    }
+
+    .filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+        user-select: none;
+    }
+
+    .filter-checkbox:hover {
+        background: #ecf0f1;
+    }
+
+    .filter-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #3498db;
+    }
+
+    .filter-checkbox span {
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-start;
+        padding-top: 15px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .btn-apply-filter {
+        background: #27ae60 !important;
+        color: white !important;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-apply-filter:hover {
+        background: #229954 !important;
+    }
+
+    .btn-reset-filter {
+        background: #e74c3c !important;
+        color: white !important;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-reset-filter:hover {
+        background: #c0392b !important;
+    }
+
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-card.green {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    .stat-card.orange {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    }
+
+    .stat-card.red {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    }
+
+    .stat-card.blue {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    }
+
+    .stat-card .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .stat-card .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+    }
+
+    .or-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .or-section h3 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #3498db;
+    }
+
+    .journey-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    .journey-table th {
+        background: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .journey-table td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .journey-table tr.incomplete-entry {
+        background: #ffe5e5;
+    }
+
+    .journey-table tr.complete-entry {
+        background: #e8f5e9;
+    }
+
+    .journey-table tr:hover {
+        background: #f1f3f5;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #48bb78;
+        color: white;
+    }
+
+    .badge-danger {
+        background: #e53e3e;
+        color: white;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+        font-size: 18px;
+    }
+
+    .error-message {
+        background: #ffe5e5;
+        color: #c53030;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #e53e3e;
+        text-align: center;
+        font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+        .period-selector {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .date-navigation {
+            justify-content: center;
+        }
+
+        .summary-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .journey-table {
+            font-size: 14px;
+        }
+
+        .journey-table th,
+        .journey-table td {
+            padding: 8px 4px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-container">
+    <h1>📊 {% trans "Operating Room Statistics" %}</h1>
+    <h2>{{ hospital.name }}</h2>
+
+    {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+    {% else %}
+
+    <!-- Period Selector -->
+    <div class="period-selector">
+        <div class="period-buttons">
+            <a href="{% url 'stats:dashboard_period' 'day' %}" class="btn {% if period == 'day' %}active{% endif %}">{% trans "Day" %}</a>
+            <a href="{% url 'stats:dashboard_period' 'week' %}" class="btn {% if period == 'week' %}active{% endif %}">{% trans "Week" %}</a>
+            <a href="{% url 'stats:dashboard_period' 'month' %}" class="btn {% if period == 'month' %}active{% endif %}">{% trans "Month" %}</a>
+            <a href="{% url 'stats:dashboard_period' 'quarter' %}" class="btn {% if period == 'quarter' %}active{% endif %}">{% trans "Quarter" %}</a>
+        </div>
+
+        <div class="filter-controls">
+            <button type="button" id="toggleFilters" class="btn filter-toggle-btn">
+                🔍 {% trans "Filters" %}
+                <span id="filterIndicator">
+                    {% if filters_active %}
+                        ({% trans "Filtered" %})
+                    {% endif %}
+                </span>
+                <span id="toggleIcon">▼</span>
+            </button>
+        </div>
+
+        <div class="date-navigation">
+            <a href="{% url 'stats:dashboard_period_date' period prev_date %}" class="btn">← {% trans "Previous" %}</a>
+
+            <div class="date-picker-container">
+                <span class="calendar-icon">📅</span>
+                <input type="text" id="datePicker" placeholder="{% trans "Select date" %}" readonly>
+            </div>
+
+            <a href="{% url 'stats:dashboard_period_date' period next_date %}" class="btn">{% trans "Next" %} →</a>
+        </div>
+
+        <div>
+            {% if date_str %}
+                <a href="{% url 'stats:export_period_date' period date_str %}" class="btn export-button">📊 {% trans "Export to Excel" %}</a>
+            {% else %}
+                <a href="{% url 'stats:export_period' period %}" class="btn export-button">📊 {% trans "Export to Excel" %}</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filter Panel (Collapsible) -->
+    <div id="filterPanel" class="filter-panel" style="display: none;">
+        <form id="filterForm" method="get">
+            <input type="hidden" name="period" value="{{ period }}">
+            {% if date_str %}
+                <input type="hidden" name="date_str" value="{{ date_str }}">
+            {% endif %}
+
+            <div class="filter-sections">
+                <!-- Operating Rooms Filter -->
+                <div class="filter-section">
+                    <h4>
+                        🏥 {% trans "Operating Rooms" %}
+                        <span class="filter-count">(
+                            <span id="orSelectedCount">{{ selected_or_ids|length }}</span>/{{ all_ors|length }}
+                        )</span>
+                    </h4>
+                    <div class="filter-checkboxes">
+                        {% for or_obj in all_ors %}
+                        <label class="filter-checkbox">
+                            <input type="checkbox"
+                                   name="or_ids"
+                                   value="{{ or_obj.id }}"
+                                   {% if or_obj.id in selected_or_ids %}checked{% endif %}
+                                   class="or-checkbox">
+                            <span>{{ or_obj.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Wards Filter -->
+                <div class="filter-section">
+                    <h4>
+                        🏨 {% trans "Wards" %}
+                        <span class="filter-count">(
+                            <span id="wardSelectedCount">{{ selected_ward_ids|length }}</span>/{{ all_wards|length }}
+                        )</span>
+                    </h4>
+                    <div class="filter-checkboxes">
+                        {% for ward in all_wards %}
+                        <label class="filter-checkbox">
+                            <input type="checkbox"
+                                   name="ward_ids"
+                                   value="{{ ward.id }}"
+                                   {% if ward.id in selected_ward_ids %}checked{% endif %}
+                                   class="ward-checkbox">
+                            <span>{{ ward.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-apply-filter">✓ {% trans "Apply Filters" %}</button>
+                <button type="button" id="resetFilters" class="btn btn-reset-filter">↺ {% trans "Reset Filters" %}</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="summary-stats">
+        <div class="stat-card green">
+            <div class="stat-label">{% trans "Completed Surgeries" %}</div>
+            <div class="stat-value">{{ stats.total_completed }}</div>
+        </div>
+
+        <div class="stat-card red">
+            <div class="stat-label">{% trans "Incomplete Entries" %}</div>
+            <div class="stat-value">{{ stats.total_incomplete }}</div>
+        </div>
+
+        <div class="stat-card blue">
+            <div class="stat-label">{% trans "Total OR Time Used" %}</div>
+            <div class="stat-value">{{ stats.total_hours }}h</div>
+        </div>
+
+        <div class="stat-card orange">
+            <div class="stat-label">{% trans "Average OR Time" %}</div>
+            <div class="stat-value">{{ stats.avg_minutes|duration_format }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">{% trans "Patients Called" %}</div>
+            <div class="stat-value">{{ can_accept_count }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">{% trans "Patients in OR" %}</div>
+            <div class="stat-value">{{ patient_in_or_count|default:0 }}</div>
+        </div>
+    </div>
+
+    <!-- Operating Room Sections -->
+    {% if journeys_by_or %}
+        {% for or_id, or_data in journeys_by_or.items %}
+        <div class="or-section">
+            <h3>🏥 {{ or_data.operating_room.name }}</h3>
+
+            <table class="journey-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Patient Requested" %}</th>
+                        <th>{% trans "Patient in OR" %}</th>
+                        <th>{% trans "Surgery Completed" %}</th>
+                        <th>{% trans "Time from last patient" %}</th>
+                        <th>{% trans "Wait for Patient" %}</th>
+                        <th>{% trans "Operation Time" %}</th>
+                        <th>{% trans "Total OR Time" %}</th>
+                        <th>{% trans "Ward" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for journey in or_data.journeys %}
+                    <tr class="{{ journey.incomplete|status_class }}">
+                        <td>
+                            {% if journey.incomplete %}
+                                <span class="badge badge-danger">⚠️ {% trans "Incomplete" %}</span>
+                            {% else %}
+                                <span class="badge badge-success">✓ {% trans "Complete" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ journey.patient_requested.sent_at|date:"Y-m-d H:i:s" }}
+                        </td>
+                        <td>
+                            {% if journey.patient_in_or %}
+                                {{ journey.patient_in_or.sent_at|date:"Y-m-d H:i:s" }}
+                            {% else %}
+                                <em style="color: #95a5a6;">{% trans "N/A" %}</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.surgery_done %}
+                                {{ journey.surgery_done.sent_at|date:"Y-m-d H:i:s" }}
+                            {% else %}
+                                <em style="color: #e53e3e;">{% trans "Not completed" %}</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.time_between_calls_minutes is not None %}
+                                <strong>{{ journey.time_between_calls_minutes|duration_format }}</strong>
+                            {% else %}
+                                <em style="color: #95a5a6;">{% trans "N/A" %}</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.wait_time_minutes is not None %}
+                                <strong style="color: #e67e22;">{{ journey.wait_time_minutes|duration_format }}</strong>
+                            {% else %}
+                                <em style="color: #95a5a6;">{% trans "N/A" %}</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.operation_time_minutes is not None %}
+                                <strong style="color: #27ae60;">{{ journey.operation_time_minutes|duration_format }}</strong>
+                            {% else %}
+                                <em style="color: #95a5a6;">{% trans "N/A" %}</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.total_time_minutes is not None %}
+                                <strong style="color: #3498db; font-size: 16px;">{{ journey.total_time_minutes|duration_format }}</strong>
+                            {% else %}
+                                <em style="color: #7f8c8d;">N/A</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ journey.patient_requested.ward.name }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-data">
+            📭 {% trans "No operating room usage data available for this period." %}
+        </div>
+    {% endif %}
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPeriod = "{{ period }}";
+        const currentDateStr = "{{ date_str|default:'' }}";
+
+        // Get proper base URL from Django - this will be /__stats__/ or whatever it's configured as
+        const baseStatsUrl = "{% url 'stats:dashboard' %}".replace(/\/$/, '');
+
+        // Get dates with data from Django
+        const datesWithData = {{ dates_with_data|safe|default:"[]" }};
+
+        // ===== FILTER PANEL FUNCTIONALITY =====
+
+        const toggleFiltersBtn = document.getElementById('toggleFilters');
+        const filterPanel = document.getElementById('filterPanel');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const filterForm = document.getElementById('filterForm');
+        const resetFiltersBtn = document.getElementById('resetFilters');
+
+        // Get all checkboxes
+        const orCheckboxes = document.querySelectorAll('.or-checkbox');
+        const wardCheckboxes = document.querySelectorAll('.ward-checkbox');
+
+        // Toggle filter panel visibility
+        toggleFiltersBtn.addEventListener('click', function() {
+            if (filterPanel.style.display === 'none') {
+                filterPanel.style.display = 'block';
+                toggleIcon.classList.add('expanded');
+            } else {
+                filterPanel.style.display = 'none';
+                toggleIcon.classList.remove('expanded');
+            }
+        });
+
+        // Update selected count displays
+        function updateSelectedCounts() {
+            const orSelected = Array.from(orCheckboxes).filter(cb => cb.checked).length;
+            const wardSelected = Array.from(wardCheckboxes).filter(cb => cb.checked).length;
+
+            document.getElementById('orSelectedCount').textContent = orSelected;
+            document.getElementById('wardSelectedCount').textContent = wardSelected;
+        }
+
+        // Listen to checkbox changes to update counts
+        orCheckboxes.forEach(cb => cb.addEventListener('change', updateSelectedCounts));
+        wardCheckboxes.forEach(cb => cb.addEventListener('change', updateSelectedCounts));
+
+        // Handle filter form submission
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get selected OR IDs
+            const selectedOrIds = Array.from(orCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            // Get selected Ward IDs
+            const selectedWardIds = Array.from(wardCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            // Build URL with filter parameters using Django's URL
+            let url = baseStatsUrl + '/' + currentPeriod + '/';
+
+            if (currentDateStr) {
+                url += currentDateStr + '/';
+            }
+
+            const params = new URLSearchParams();
+            if (selectedOrIds.length > 0) {
+                params.append('or_ids', selectedOrIds.join(','));
+            }
+            if (selectedWardIds.length > 0) {
+                params.append('ward_ids', selectedWardIds.join(','));
+            }
+
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+
+            window.location.href = url;
+        });
+
+        // Reset filters button
+        resetFiltersBtn.addEventListener('click', function() {
+            // Check all checkboxes
+            orCheckboxes.forEach(cb => cb.checked = true);
+            wardCheckboxes.forEach(cb => cb.checked = true);
+
+            // Update counts
+            updateSelectedCounts();
+
+            // Navigate to URL without filter parameters
+            let url = baseStatsUrl + '/' + currentPeriod + '/';
+            if (currentDateStr) {
+                url += currentDateStr + '/';
+            }
+            window.location.href = url;
+        });
+
+        // Helper function to build URL with current filters
+        function buildUrlWithFilters(baseUrl) {
+            const urlObj = new URL(baseUrl, window.location.origin);
+
+            // Preserve current filter parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const orIds = urlParams.get('or_ids');
+            const wardIds = urlParams.get('ward_ids');
+
+            if (orIds) {
+                urlObj.searchParams.set('or_ids', orIds);
+            }
+            if (wardIds) {
+                urlObj.searchParams.set('ward_ids', wardIds);
+            }
+
+            return urlObj.pathname + (urlObj.search ? urlObj.search : '');
+        }
+
+        // Update period button links to preserve filters
+        document.querySelectorAll('.period-buttons .btn').forEach(btn => {
+            const href = btn.getAttribute('href');
+            if (href && !href.includes('?')) {
+                btn.setAttribute('href', buildUrlWithFilters(href));
+            }
+        });
+
+        // Update navigation button links to preserve filters
+        document.querySelectorAll('.date-navigation .btn').forEach(btn => {
+            const href = btn.getAttribute('href');
+            if (href && !href.includes('?')) {
+                btn.setAttribute('href', buildUrlWithFilters(href));
+            }
+        });
+
+        // Update export button link to preserve filters
+        const exportBtn = document.querySelector('.export-button');
+        if (exportBtn) {
+            const href = exportBtn.getAttribute('href');
+            if (href && !href.includes('?')) {
+                exportBtn.setAttribute('href', buildUrlWithFilters(href));
+            }
+        }
+
+        // ===== CALENDAR FUNCTIONALITY =====
+
+        // Parse current date or use today
+        let defaultDate = new Date();
+        if (currentDateStr) {
+            defaultDate = new Date(currentDateStr);
+        }
+
+        // Initialize Flatpickr
+        const picker = flatpickr("#datePicker", {
+            defaultDate: defaultDate,
+            dateFormat: "Y-m-d",
+            locale: "{{ LANGUAGE_CODE }}" === "pl" ? "pl" : "default",
+            allowInput: false,
+            clickOpens: true,
+            theme: "material_blue",
+            disableMobile: false,
+
+            // Customize for different periods
+            onChange: function(selectedDates, dateStr, instance) {
+                if (dateStr) {
+                    // Navigate to the selected date for the current period
+                    const fullUrl = baseStatsUrl + '/' + currentPeriod + '/' + dateStr + '/';
+                    window.location.href = buildUrlWithFilters(fullUrl);
+                }
+            },
+
+            // Mark days with data
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj;
+
+                // Format date without timezone conversion
+                // Using local date components to avoid UTC shift
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
+
+                // Check if this date has data
+                if (datesWithData.includes(dateStr)) {
+                    // Add a dot indicator
+                    const dot = document.createElement('span');
+                    dot.className = 'data-indicator';
+                    dot.style.cssText = 'position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: #27ae60; border-radius: 50%; box-shadow: 0 0 3px rgba(39, 174, 96, 0.8);';
+                    dayElem.style.position = 'relative';
+                    dayElem.classList.add('has-data');
+                    dayElem.appendChild(dot);
+                }
+            },
+
+            // Add "Today" button
+            onReady: function(selectedDates, dateStr, instance) {
+                const todayBtn = document.createElement('button');
+                todayBtn.textContent = "{{ LANGUAGE_CODE }}" === "pl" ? "Dzisiaj" : "Today";
+                todayBtn.type = 'button';
+                todayBtn.className = 'flatpickr-today-btn';
+                todayBtn.style.cssText = 'width: 100%; padding: 8px; background: #3498db; color: white; border: none; cursor: pointer; border-radius: 4px; margin-top: 8px;';
+
+                todayBtn.addEventListener('click', function() {
+                    const today = new Date();
+                    const todayStr = today.toISOString().split('T')[0];
+                    const todayUrl = baseStatsUrl + '/' + currentPeriod + '/' + todayStr + '/';
+                    window.location.href = buildUrlWithFilters(todayUrl);
+                });
+
+                instance.calendarContainer.appendChild(todayBtn);
+            }
+        });
+
+        // Set the input value to show the current date
+        picker.setDate(defaultDate, false);
+    });
+</script>
+
+<style>
+    /* Custom Flatpickr styling to match our design */
+    .flatpickr-calendar {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        border-radius: 8px !important;
+        border: 2px solid #3498db !important;
+    }
+
+    .flatpickr-day.selected {
+        background: #3498db !important;
+        border-color: #3498db !important;
+    }
+
+    .flatpickr-day.today {
+        border-color: #e74c3c !important;
+    }
+
+    .flatpickr-day:hover {
+        background: #ecf0f1 !important;
+        border-color: #ecf0f1 !important;
+    }
+
+    .flatpickr-months .flatpickr-month {
+        background: #3498db !important;
+        color: white !important;
+    }
+
+    .flatpickr-months .flatpickr-prev-month,
+    .flatpickr-months .flatpickr-next-month {
+        fill: white !important;
+    }
+
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year {
+        font-weight: bold !important;
+    }
+
+    .flatpickr-weekdays {
+        background: #ecf0f1 !important;
+    }
+
+    .flatpickr-today-btn:hover {
+        background: #2980b9 !important;
+    }
+
+    /* Style for days with data indicator */
+    .flatpickr-day.has-data {
+        font-weight: 600 !important;
+    }
+
+    .data-indicator {
+        z-index: 10;
+    }
+</style>
+{% endblock %}

@@ -106,25 +106,29 @@ class MessageLog(models.Model):
     message_type = models.CharField(max_length=50, choices=MESSAGE_TYPES)
     content = models.TextField()
 
-    # Can be either OperatingRoom or Ward
-    location_type = models.CharField(max_length=20, choices=[
-        ('operating_room', _('Operating Room')),
-        ('ward', _('Ward')),
-    ])
-    location_id = models.PositiveIntegerField()
+    # Explicit foreign keys for both locations
+    operating_room = models.ForeignKey(
+        OperatingRoom,
+        on_delete=models.CASCADE,
+        related_name='message_logs',
+        default=11  # Default to first operating room
+    )
+    ward = models.ForeignKey(
+        Ward,
+        on_delete=models.CASCADE,
+        related_name='message_logs',
+        default=15  # Default to first ward
+    )
 
     sent_at = models.DateTimeField(auto_now_add=True)
     acknowledged_at = models.DateTimeField(null=True, blank=True)
+    no_users_who_received = models.IntegerField(
+        default=0,
+        help_text=_("Number of users who were connected to receive this message when it was sent")
+    )
 
     class Meta:
         ordering = ['-sent_at']
 
     def __str__(self):
         return f"{self.sender_role} -> {self.recipient_role}: {self.message_type}"
-
-    @property
-    def location(self):
-        if self.location_type == 'operating_room':
-            return OperatingRoom.objects.get(id=self.location_id)
-        else:
-            return Ward.objects.get(id=self.location_id)

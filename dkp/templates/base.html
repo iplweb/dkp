@@ -180,10 +180,10 @@
 <body>
     <!-- Navigation Bar for Authenticated Users -->
     {% if user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background-color: #000000;">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'hospital:dashboard' %}">
-                {% trans "DKP Hospital System" %}
+            <a class="navbar-brand" href="{% url 'hospital:dashboard' %}" style="color: #ffffff;">
+                {% trans "DCP" %}
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -191,39 +191,68 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'hospital:dashboard' %}">
+                        <a class="nav-link" href="{% url 'hospital:dashboard' %}" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
                             {% trans "Dashboard" %}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'hospital:hospital_edit' %}">
+                        <a class="nav-link" href="{% url 'hospital:hospital_edit' %}" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
                             {% trans "Hospital Settings" %}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'hospital:ward_list' %}">
+                        <a class="nav-link" href="{% url 'hospital:ward_list' %}" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
                             {% trans "Wards" %}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'hospital:operating_room_list' %}">
+                        <a class="nav-link" href="{% url 'hospital:operating_room_list' %}" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
                             {% trans "Operating Rooms" %}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
+                        <a class="nav-link" href="/" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
                             {% trans "Communication" %}
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'stats:dashboard' %}" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
+                            📊 {% trans "Statistics" %}
+                        </a>
+                    </li>
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
+                            ⚙️ {% trans "Admin Panel" %}
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
+                    <!-- Language Selector -->
+                    <li class="nav-item">
+                        <form action="{% url 'set_language' %}" method="post" id="languageForm" style="margin: 0;">
+                            {% csrf_token %}
+                            {% get_current_language as LANGUAGE_CODE %}
+                            <input type="hidden" name="language" id="languageInput" value="">
+                            <a href="#" class="nav-link" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'" onclick="toggleLanguage(); return false;">
+                                {% if LANGUAGE_CODE == 'pl' %}
+                                    🇵🇱 PL
+                                {% else %}
+                                    🇬🇧 EN
+                                {% endif %}
+                            </a>
+                        </form>
+                    </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" style="color: #aaaaaa;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#aaaaaa'">
                             {{ user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            {% if user.is_superuser %}
                             <li><a class="dropdown-item" href="/admin/">{% trans "Admin Panel" %}</a></li>
                             <li><hr class="dropdown-divider"></li>
+                            {% endif %}
                             <li><a class="dropdown-item" href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>
                         </ul>
                     </li>
@@ -241,22 +270,14 @@
     </div>
     {% endif %}
 
-    <!-- Language Selector -->
-    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-        <form action="{% url 'set_language' %}" method="post">
-            {% csrf_token %}
-            <select name="language" onchange="this.form.submit()"
-                    style="padding: 5px; border-radius: 4px; border: 1px solid #ddd; background: white;">
-                {% get_current_language as LANGUAGE_CODE %}
-                {% get_available_languages as LANGUAGES %}
-                {% for code, name in LANGUAGES %}
-                    <option value="{{ code }}" {% if code == LANGUAGE_CODE %}selected{% endif %}>
-                        {{ name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </form>
-    </div>
+    <script>
+        function toggleLanguage() {
+            const currentLang = "{{ LANGUAGE_CODE }}";
+            const newLang = currentLang === 'pl' ? 'en' : 'pl';
+            document.getElementById('languageInput').value = newLang;
+            document.getElementById('languageForm').submit();
+        }
+    </script>
 
     <div class="container">
         {% block content %}{% endblock %}

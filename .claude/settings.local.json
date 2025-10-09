@@ -11,7 +11,11 @@
       "Bash(pip install:*)",
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
-      "Bash(timeout 3 python dkp/manage.py check)"
+      "Bash(timeout 3 python dkp/manage.py check)",
+      "Bash(docker:*)",
+      "Bash(docker compose:*)",
+      "Bash(poetry lock:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

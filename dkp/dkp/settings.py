@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'channels',
     'hospital',
     'comms',
+    'stats',
 
     # allauth
     'allauth',

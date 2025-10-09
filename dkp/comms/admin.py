@@ -30,24 +30,8 @@ class MessageTypeAdmin(admin.ModelAdmin):
 
 @admin.register(MessageLog)
 class MessageLogAdmin(admin.ModelAdmin):
-    list_display = ['sender_role', 'recipient_role', 'message_type', 'location_info', 'sent_at', 'acknowledged_at']
-    list_filter = ['sender_role', 'recipient_role', 'message_type', 'location_type']
-    search_fields = ['content']
+    list_display = ['sender_role', 'recipient_role', 'message_type', 'operating_room', 'ward', 'sent_at', 'acknowledged_at']
+    list_filter = ['sender_role', 'recipient_role', 'message_type', 'operating_room', 'ward']
+    search_fields = ['content', 'operating_room__name', 'ward__name']
     readonly_fields = ['sent_at', 'acknowledged_at']
-
-    def location_info(self, obj):
-        if obj.location_type == 'operating_room':
-            from hospital.models import OperatingRoom
-            try:
-                location = OperatingRoom.objects.get(id=obj.location_id)
-                return f"OR: {location.name}"
-            except OperatingRoom.DoesNotExist:
-                return f"OR (ID: {obj.location_id})"
-        else:
-            from hospital.models import Ward
-            try:
-                location = Ward.objects.get(id=obj.location_id)
-                return f"Ward: {location.name}"
-            except Ward.DoesNotExist:
-                return f"Ward (ID: {obj.location_id})"
-    location_info.short_description = 'Location'
+    date_hierarchy = 'sent_at'

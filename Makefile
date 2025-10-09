@@ -74,7 +74,7 @@ clean:
 	rm -rf htmlcov
 
 superuser:
-	python manage.py createsuperuser
+	poetry run dkp/manage.py createsuperuser
 
 setup:
 	pip install -e .
@@ -110,14 +110,12 @@ install-reloader:
 # Run Daphne with auto-reload using Python watchdog
 run-asgi-reload:
 	@if ! pip show watchdog > /dev/null 2>&1; then \
-		echo "❌ watchdog is not installed!"; \
-		echo "Please run: make install-reloader"; \
-		exit 1; \
+		make install-reloader; \
 	fi
 	@echo "🚀 Starting Daphne with auto-reload (using watchdog)..."
 	@echo "👀 Watching for file changes in ./dkp directory"
 	@echo "Press Ctrl+C to stop"
-	@python daphne_reloader.py daphne dkp.asgi:application --port 8000 --bind 127.0.0.1 --verbosity 2
+	@poetry run python daphne_reloader.py daphne dkp.asgi:application --port 8000 --bind 127.0.0.1 --verbosity 2
 
 # Run Daphne with auto-reload using fswatch (macOS specific)
 run-asgi-fswatch:
@@ -130,3 +128,13 @@ run-asgi-fswatch:
 	@echo "👀 Watching for file changes in ./dkp directory"
 	@echo "Press Ctrl+C to stop"
 	@./fswatch_daphne.sh
+
+dev:
+	@echo "🚀 Starting DKP Hospital Communication System"
+	@echo "🏥 Hospital Communication Server"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🌐 Server running at: http://localhost:8000"
+	@echo "💻 WebSocket support: ✓ Enabled"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Press Ctrl+C to stop"
+	@cd dkp && daphne dkp.asgi:application --port 8000

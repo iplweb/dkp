@@ -76,12 +76,6 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
             await self.send_user_count()
 
     async def handle_send_message(self, data):
-        # Create message in database
-        message = await database_sync_to_async(self._create_message_db)(data)
-
-        # Get operating room name
-        operating_room_name = await database_sync_to_async(self._get_operating_room_name)(data['operating_room_id'])
-
         # Determine target group based on recipient role
         recipient_role = data['recipient_role']
         ward_id = data['ward_id']
@@ -93,6 +87,15 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
         else:
             group_name = f"{recipient_role.lower()}_ward_{ward_id}"
 
+        # Get user count for the target group BEFORE creating message
+        count = await self.get_group_user_count(group_name)
+
+        # Create message in database with user count info
+        message = await database_sync_to_async(self._create_message_db)(data, count)
+
+        # Get operating room name
+        operating_room_name = await database_sync_to_async(self._get_operating_room_name)(data['operating_room_id'])
+
         # Send to recipient's channel group
         await self.channel_layer.group_send(
             group_name,
@@ -103,16 +106,12 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
                 'recipient_role': recipient_role,
                 'message_type': data['message_type'],
                 'content': data['message_type'],
-                'location_type': 'ward',
-                'location_id': int(ward_id),
                 'operating_room_id': int(data['operating_room_id']),
                 'operating_room_name': operating_room_name,
+                'ward_id': int(ward_id),
                 'sent_at': message.sent_at.isoformat(),
             }
         )
-
-        # Get user count for the target group
-        count = await self.get_group_user_count(group_name)
 
         # Send status back to sender
         await self.send(text_data=json.dumps({
@@ -174,7 +173,7 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
                 'count': count
             }))
 
-    def _create_message_db(self, data):
+    def _create_message_db(self, data, user_count=0):
         from hospital.models import Role, OperatingRoom
 
         sender_role = Role.objects.get(name_en=data['sender_role'])
@@ -189,8 +188,9 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
             recipient_role=recipient_role,
             message_type=data['message_type'],
             content=data['message_type'],
-            location_type='operating_room',
-            location_id=int(data['operating_room_id'])
+            operating_room_id=int(data['operating_room_id']),
+            ward_id=int(data['ward_id']),
+            no_users_who_received=user_count
         )
         return message
 
@@ -221,17 +221,15 @@ class AnesthetistConsumer(AsyncWebsocketConsumer):
 
     async def broadcast_acknowledgment(self, event):
         # Check if this acknowledgment is relevant to this anesthetist
-        # For anesthetist messages sent from operating_room to ward, we need to check differently
-        # The anesthetist is monitoring ward_id, but their messages have location_type='operating_room'
-        # We need to check if this message was sent to the ward they're monitoring
+        # Anesthetist messages are sent from an operating room to a ward
+        # The anesthetist is monitoring a ward_id, and we check if the message was sent to that ward
 
         # Get the message details to determine if it's relevant
         message = await database_sync_to_async(self._get_message_details)(event['message_id'])
 
         if message:
-            # Check if this message was sent from an anesthetist to the ward we're monitoring
-            if (message.sender_role.name_en == 'Anesthetist' and
-                message.location_type == 'operating_room'):
+            # Check if this message was sent from an anesthetist
+            if message.sender_role.name_en == 'Anesthetist':
                 # This is an anesthetist message - send the acknowledgment update
                 await self.send(text_data=json.dumps({
                     'type': 'acknowledgment_update',
@@ -337,7 +335,7 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
             if acknowledging_role in ['Nurse', 'Surgeon'] and message.recipient_role.name_en == acknowledging_role:
                 # Find all unacknowledged messages for this role in this location
                 unacknowledged_messages = await database_sync_to_async(self._get_unacknowledged_messages_for_role)(
-                    acknowledging_role, self.location_type, self.location_id
+                    acknowledging_role
                 )
 
                 # Acknowledge all of them
@@ -358,20 +356,8 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
                 )
 
             # Also handle anesthetist notifications
-            # Find which operating room this message came from
-            # If it's from an operating room, we need to find anesthetists monitoring the relevant ward
-
-            # Check if message was sent from an operating room to a ward
-            if message.sender_role.name_en == 'Anesthetist' and message.location_type == 'operating_room':
-                # Find all messages from this OR to get the target wards
-                target_wards = await database_sync_to_async(
-                    lambda: list(MessageLog.objects.filter(
-                        sender_role_id=message.sender_role_id,
-                        location_type='operating_room',
-                        location_id=message.location_id
-                    ).values_list('recipient_role', flat=True).distinct())
-                )()
-
+            # Broadcast acknowledgments to anesthetists
+            if message.sender_role.name_en == 'Anesthetist':
                 # For simplicity, broadcast to all anesthetists monitoring any ward
                 # They will filter based on which ward they're monitoring
                 await self.channel_layer.group_send(
@@ -382,7 +368,8 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
                         'message_type': message.message_type,
                         'sender_role': message.sender_role.name,
                         'recipient_role': message.recipient_role.name,
-                        'operating_room_id': message.location_id,
+                        'operating_room_id': message.operating_room_id,
+                        'ward_id': message.ward_id,
                         'acknowledged_at': message.acknowledged_at.isoformat(),
                     }
                 )
@@ -396,8 +383,8 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
                         'message_type': message.message_type,
                         'sender_role': message.sender_role.name,
                         'recipient_role': message.recipient_role.name,
-                        'location_type': message.location_type,
-                        'location_id': message.location_id,
+                        'operating_room_id': message.operating_room_id,
+                        'ward_id': message.ward_id,
                         'acknowledged_at': message.acknowledged_at.isoformat(),
                     }
                 )
@@ -412,7 +399,7 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
         except MessageLog.DoesNotExist:
             return None
 
-    def _get_unacknowledged_messages_for_role(self, role_name, location_type, location_id):
+    def _get_unacknowledged_messages_for_role(self, role_name):
         from hospital.models import Role
 
         # Get the role object
@@ -420,13 +407,13 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
 
         # Find all unacknowledged messages for this role in this location
         # Messages sent TO this role that haven't been acknowledged
+        # For nurses/surgeons in a ward, filter by ward_id from self.location_id
         messages = MessageLog.objects.filter(
             recipient_role=role,
+            ward_id=self.location_id,
             acknowledged_at__isnull=True
         ).select_related('sender_role', 'recipient_role')
 
-        # For nurses/surgeons, they receive messages in wards
-        # So we need to filter by messages that were sent from anesthetists to their ward
         return list(messages)
 
     async def update_user_count(self, connecting):
@@ -459,19 +446,20 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
             )
 
     async def handle_send_message(self, data):
-        # Create message in database
-        message = await database_sync_to_async(self._create_message_db)(data)
-
-        # Send to recipient's channel group
+        # Determine target group
         recipient_role = data['recipient_role']
         ward_id = data['ward_id']
-
-        # For Anesthetist, messages go to ward locations
-        location_type = 'ward'
-        location_id = int(ward_id)
-
         group_name = f"{recipient_role.lower()}_ward_{ward_id}"
 
+        # Get user count for the target group BEFORE creating message
+        from django.core.cache import cache
+        count = cache.get(f"user_count:{group_name}")
+        count = int(count) if count else 0
+
+        # Create message in database with user count info
+        message = await database_sync_to_async(self._create_message_db)(data, count)
+
+        # Send to recipient's channel group
         await self.channel_layer.group_send(
             group_name,
             {
@@ -481,36 +469,25 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
                 'recipient_role': recipient_role,
                 'message_type': data['message_type'],
                 'content': data['message_type'],
-                'location_type': location_type,
-                'location_id': location_id,
+                'operating_room_id': message.operating_room_id,
+                'ward_id': message.ward_id,
                 'sent_at': message.sent_at.isoformat(),
             }
         )
 
-    def _create_message_db(self, data):
+    def _create_message_db(self, data, user_count=0):
         from hospital.models import Role, OperatingRoom, Ward
 
         sender_role = Role.objects.get(name_en=data['sender_role'])
         recipient_role = Role.objects.get(name_en=data['recipient_role'])
 
-        # Handle both Anesthetist and regular user data formats
-        if 'operating_room_id' in data:
-            # Anesthetist sending from operating room
-            location_type = 'operating_room'
-            location_id = int(data['operating_room_id'])
-            # Get hospital from operating room
-            location_obj = OperatingRoom.objects.select_related('hospital').get(id=location_id)
-            hospital = location_obj.hospital
-        else:
-            # Regular user
-            location_type = data['location_type']
-            location_id = int(data['location_id'])
-            # Get hospital from location (ward or operating room)
-            if location_type == 'operating_room':
-                location_obj = OperatingRoom.objects.select_related('hospital').get(id=location_id)
-            else:
-                location_obj = Ward.objects.select_related('hospital').get(id=location_id)
-            hospital = location_obj.hospital
+        # Get operating room and ward IDs
+        operating_room_id = int(data.get('operating_room_id', 11))  # Default to first OR
+        ward_id = int(data.get('ward_id', 15))  # Default to first ward
+
+        # Get hospital from operating room
+        operating_room = OperatingRoom.objects.select_related('hospital').get(id=operating_room_id)
+        hospital = operating_room.hospital
 
         message = MessageLog.objects.create(
             hospital=hospital,
@@ -518,8 +495,9 @@ class CommunicationConsumer(AsyncWebsocketConsumer):
             recipient_role=recipient_role,
             message_type=data['message_type'],
             content=data['message_type'],
-            location_type=location_type,
-            location_id=location_id
+            operating_room_id=operating_room_id,
+            ward_id=ward_id,
+            no_users_who_received=user_count
         )
         return message
 

@@ -31,7 +31,7 @@ class DaphneReloader(FileSystemEventHandler):
             '.DS_Store', '*.swp', '*.swo', '*~'
         ]
         self.process = None
-        self.restart_lock = threading.Lock()
+        self.restart_lock = threading.RLock()  # Use RLock for reentrant locking
         self.last_restart = 0
         self.restart_delay = 1  # Minimum seconds between restarts
 

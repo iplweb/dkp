@@ -31,7 +31,9 @@
             <thead>
                 <tr>
                     <th>{% trans "Name" %}</th>
+                    {% if user.is_superuser %}
                     <th>{% trans "Hospital" %}</th>
+                    {% endif %}
                     <th>{% trans "Actions" %}</th>
                 </tr>
             </thead>
@@ -39,7 +41,9 @@
                 {% for operating_room in operating_rooms %}
                 <tr>
                     <td>{{ operating_room.name }}</td>
+                    {% if user.is_superuser %}
                     <td>{{ operating_room.hospital.name }}</td>
+                    {% endif %}
                     <td>
                         <div class="btn-group" role="group">
                             <a href="{% url 'hospital:operating_room_edit' operating_room.pk %}" class="btn btn-sm btn-outline-primary">
@@ -53,7 +57,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3" class="text-center text-muted">
+                    <td colspan="{% if user.is_superuser %}3{% else %}2{% endif %}" class="text-center text-muted">
                         {% trans "No operating rooms found." %}
                     </td>
                 </tr>

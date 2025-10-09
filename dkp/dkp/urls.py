@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [
+    path('__stats__/', include('stats.urls')),
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include('allauth.urls')),

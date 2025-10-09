@@ -260,6 +260,17 @@
             background: #fdf2f2;
             color: #e74c3c;
         }
+
+        .speaker-icon {
+            display: inline-block;
+            font-size: 24px;
+            animation: speakerPulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes speakerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
     </style>
     <audio id="notificationSound" src="{% static 'audio/alert.mp3' %}" preload="auto"></audio>
 {% endblock %}
@@ -271,6 +282,9 @@
             <h2>{% trans "Welcome to DKP System" %}</h2>
             <p>{% trans "Welcome to the system. Let's perform the setup." %}</p>
             <p>{% trans "We need to ensure your audio is working properly for important notifications." %}</p>
+            <p style="background: #fff3cd; padding: 12px; border-radius: 6px; border-left: 4px solid #ffc107;">
+                <strong>{% trans "Note:" %}</strong> {% trans "When you click Continue, a test sound will play automatically. Please ensure your speakers or headphones are ready." %}
+            </p>
             <div class="modal-buttons">
                 <button class="btn btn-success" onclick="SetupManager.proceedToAudioTest()">
                     {% trans "Continue" %}
@@ -289,10 +303,6 @@
                 <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="80">
                 <div class="volume-display" id="volumeDisplay">80%</div>
             </div>
-
-            <button class="btn btn-primary" onclick="SetupManager.playTestSound()">
-                {% trans "Play Test Sound" %}
-            </button>
 
             <div id="audioStatus" class="audio-status stopped" style="display: none;">
                 {% trans "Sound not playing" %}
@@ -341,10 +351,10 @@
                             <div>
                                 <div style="font-size: 16px; margin-bottom: 8px;">
                                     <strong>{% trans message.sender_role.name %}</strong>
-                                    {% if message.sender_role.name_en == 'Anesthetist' and message.location_type == 'operating_room' %}
-                                        {% if message.location %}
+                                    {% if message.sender_role.name_en == 'Anesthetist' %}
+                                        {% if message.operating_room %}
                                             <div style="background: #e3f2fd; padding: 8px 12px; border-radius: 6px; margin-top: 6px; border-left: 4px solid #2196f3;">
-                                                <strong style="color: #1976d2; font-size: 18px;">{% trans "from Operating Room" %}: {% trans message.location.name %}</strong>
+                                                <strong style="color: #1976d2; font-size: 18px;">{% trans "from Operating Room" %}: {% trans message.operating_room.name %}</strong>
                                             </div>
                                         {% endif %}
                                     {% endif %}
@@ -456,36 +466,65 @@
             proceedToAudioTest() {
                 document.getElementById('welcomeModal').classList.remove('active');
                 document.getElementById('audioModal').classList.add('active');
+
+                // Automatically play the test sound after a short delay
+                setTimeout(() => {
+                    this.playTestSound();
+                }, 500);
             },
 
             playTestSound() {
                 const audioStatus = document.getElementById('audioStatus');
+                const volumeSlider = document.getElementById('volumeSlider');
+                const targetVolume = volumeSlider ? volumeSlider.value / 100 : 0.8;
 
                 if (alertAudio) {
                     // Stop any existing playback
                     alertAudio.pause();
                     alertAudio.currentTime = 0;
 
-                    // Play the test sound
+                    // Start with volume at 0 for fade-in effect
+                    alertAudio.volume = 0;
                     alertAudio.loop = false;
+
                     const playPromise = alertAudio.play();
 
                     if (playPromise && typeof playPromise.then === 'function') {
                         playPromise.then(() => {
                             audioStatus.style.display = 'block';
                             audioStatus.className = 'audio-status playing';
-                            audioStatus.textContent = '🔊 Playing alert sound...';
+                            audioStatus.innerHTML = '<span class="speaker-icon">🔊</span> {% trans "Playing alert sound..." %}';
 
-                            // Show stopped status after sound ends
+                            // Fade in volume over 3 seconds
+                            const fadeInDuration = 3000; // 3 seconds
+                            const fadeInSteps = 60; // 60 steps for smooth animation
+                            const stepDuration = fadeInDuration / fadeInSteps;
+                            const volumeIncrement = targetVolume / fadeInSteps;
+                            let currentStep = 0;
+
+                            const fadeInInterval = setInterval(() => {
+                                if (currentStep < fadeInSteps && !alertAudio.paused) {
+                                    currentStep++;
+                                    alertAudio.volume = Math.min(volumeIncrement * currentStep, targetVolume);
+                                } else {
+                                    clearInterval(fadeInInterval);
+                                }
+                            }, stepDuration);
+
+                            // Automatically restart sound when it ends (loop)
                             alertAudio.addEventListener('ended', () => {
-                                audioStatus.className = 'audio-status stopped';
-                                audioStatus.textContent = '✓ Sound playback complete';
-                            }, { once: true });
+                                // Only restart if the modal is still open
+                                const audioModal = document.getElementById('audioModal');
+                                if (audioModal && audioModal.classList.contains('active')) {
+                                    alertAudio.currentTime = 0;
+                                    alertAudio.play().catch(e => console.error('Could not restart test sound:', e));
+                                }
+                            });
                         }).catch(e => {
                             console.error('Could not play test sound:', e);
                             audioStatus.style.display = 'block';
                             audioStatus.className = 'audio-status stopped';
-                            audioStatus.textContent = '❌ Could not play sound. Check your browser permissions.';
+                            audioStatus.textContent = '❌ {% trans "Could not play sound. Check your browser permissions." %}';
                         });
                     }
                 }

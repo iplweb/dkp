@@ -107,6 +107,90 @@ make superuser   # Create admin user
 - **PostgreSQL**: Database for data persistence
 - **Daphne**: ASGI server
 
+## Docker Deployment (Recommended)
+
+### Quick Start with Docker
+
+1. **Install Docker and Docker Compose**:
+   ```bash
+   # Ubuntu/Debian
+   sudo apt update && sudo apt install docker.io docker-compose-plugin
+   sudo usermod -aG docker $USER
+
+   # macOS
+   # Install Docker Desktop from https://docker.com
+   ```
+
+2. **Configure Environment**:
+   ```bash
+   cp .env.production .env.production.local
+   # Edit the file with your domain and settings
+   nano .env.production.local
+   ```
+
+3. **Deploy the Application**:
+   ```bash
+   ./docker/scripts/docker-deploy.sh prod
+   ```
+
+4. **Set up SSL Certificates** (if using a domain):
+   ```bash
+   ./docker/scripts/certbot-setup.sh
+   ```
+
+### Docker Services
+
+The Docker setup includes:
+- **app**: Django application with Daphne ASGI server
+- **postgres**: PostgreSQL database
+- **redis**: Redis for caching and WebSocket channels
+- **nginx**: Reverse proxy with SSL termination
+- **certbot**: Automatic SSL certificate management
+
+### Docker Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Run migrations
+docker-compose exec app python dkp/manage.py migrate
+
+# Create superuser
+docker-compose exec app python dkp/manage.py createsuperuser
+
+# Access Django shell
+docker-compose exec app python dkp/manage.py shell
+
+# Create backup
+./docker/scripts/docker-backup.sh
+```
+
+### Environment Variables for Docker
+
+Key variables in `.env.production`:
+- `DOMAIN`: Your domain name (e.g., `yourdomain.com`)
+- `EMAIL`: Email for SSL certificates
+- `SECRET_KEY`: Generate a strong secret key
+- `DB_PASSWORD`: Secure database password
+- `ALLOWED_HOSTS`: Add your domain
+
+### SSL/TLS Setup
+
+The system includes Let's Encrypt SSL certificate management:
+- Automatic certificate issuance and renewal
+- HTTP to HTTPS redirect
+- WebSocket SSL proxy support
+- Security headers enabled
+
+For detailed Docker deployment instructions, see [README-Docker.md](README-Docker.md).
+
 ## Admin Interface
 
 Access the admin interface at http://localhost:8000/admin to:
