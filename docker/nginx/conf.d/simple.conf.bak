@@ -1,0 +1,23 @@
+# Simple nginx config for SSL certificate generation
+upstream django_app {
+    server app:8000;
+}
+
+server {
+    listen 80;
+    server_name dkp-demo.iplweb.pl;
+
+    # ACME challenge for Let's Encrypt
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Redirect all other HTTP traffic to app
+    location / {
+        proxy_pass http://django_app;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -26,6 +26,7 @@ dependencies = [
     "django-allauth[socialaccount]>=65.0.0",
     "django-impersonate>=1.9.0",
     "PyJWT>=2.10.0",
+    "openpyxl>=3.1.0",
 ]
 
 [project.optional-dependencies]

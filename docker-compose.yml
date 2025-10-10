@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   app:
@@ -44,7 +43,7 @@ services:
     networks:
       - dkp_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,7 +64,9 @@ services:
       retries: 3
 
   nginx:
-    image: nginx:alpine
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
     container_name: dkp_nginx
     restart: unless-stopped
     env_file:
@@ -74,12 +75,11 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/nginx/conf.d:/etc/nginx/templates:ro
       - static_volume:/var/www/static:ro
       - media_volume:/var/www/media:ro
       - letsencrypt_certs:/etc/letsencrypt:ro
-      - letsencrypt_www:/var/www/certbot:ro
+      - letsencrypt_www:/var/www/certbot
+      - nginx_logs:/var/log/nginx
     depends_on:
       app:
         condition: service_healthy
@@ -110,9 +110,7 @@ services:
     command: >
       -c "
       if [ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]; then
-        certbot certonly --webroot --webroot-path=/var/www/certbot
-        --email ${EMAIL} --agree-tos --no-eff-email
-        -d ${DOMAIN} --force-renewal;
+        certbot certonly --webroot --webroot-path=/var/www/certbot --email ${EMAIL} --agree-tos --no-eff-email -d ${DOMAIN} --force-renewal;
       else
         echo 'Certificate already exists';
       fi
@@ -134,6 +132,8 @@ volumes:
   media_volume:
     driver: local
   logs_volume:
+    driver: local
+  nginx_logs:
     driver: local
   letsencrypt_certs:
     driver: local
