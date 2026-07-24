@@ -56,3 +56,6 @@ extend-exclude = '''
 profile = "django"
 line_length = 88
 skip_glob = ["**/migrations/*.py"]
+
+[project.urls]
+Funding = "https://buymeacoffee.com/mpasternak"
